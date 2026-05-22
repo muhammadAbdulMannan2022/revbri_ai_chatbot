@@ -4,8 +4,9 @@ import { ArrowLeft, ArrowRight, Home, LogOut, User } from "lucide-react";
 import { useState } from "react";
 
 import { useRouter, usePathname } from "next/navigation";
-import { RiExchangeDollarLine } from "react-icons/ri";
+import { RiChat1Line, RiExchangeDollarLine } from "react-icons/ri";
 import SidebarChatList from "./SidebarChat";
+import { BsChatDots } from "react-icons/bs";
 
 const agentsData = [
   {
@@ -33,9 +34,6 @@ export default function Sidebar({
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
 }) {
-  const [activeAgentId, setActiveAgentId] = useState<number>(1);
-  const activeAgent = agentsData.find((agent) => agent.id === activeAgentId);
-
   const router = useRouter();
   const pathname = usePathname();
 
@@ -74,24 +72,38 @@ export default function Sidebar({
         >
           {[
             {
+              name: "Chat",
+              Icon: BsChatDots,
+              id: 1,
+              action: "/dashboard",
+              isActive: pathname === "/dashboard",
+            },
+            {
               name: "Plan",
               Icon: RiExchangeDollarLine,
-              id: 1,
+              id: 2,
               action: "/dashboard/plan",
+              isActive: pathname.includes("/dashboard/plan"),
             },
             {
               name: "Profile",
               Icon: User,
-              id: 2,
+              id: 3,
               action: "/dashboard/profile",
+              isActive: pathname.includes("/dashboard/profile"),
             },
-
-            { name: "Logout", Icon: LogOut, id: 3, action: "logout" },
+            {
+              name: "Logout",
+              Icon: LogOut,
+              id: 4,
+              action: "logout",
+              isActive: false,
+            },
           ].map((Icon, i) => (
             <div
               onClick={() => handleNavigate(Icon.action)}
               key={i}
-              className={`flex flex-col text-[#6A7282] items-center justify-center w-full aspect-square rounded-xl text-[10px] sm:text-xs cursor-pointer ${pathname === "/dashboard" ? "" : "p-2.5"}`}
+              className={`flex flex-col text-[#6A7282] items-center justify-center w-full aspect-square rounded-xl text-[10px] sm:text-xs cursor-pointer ${pathname === "/dashboard" ? "" : "p-2.5"} ${Icon.isActive ? "bg-[#ff5a5a] text-white" : "hover:bg-gray-100"}`}
             >
               <Icon.Icon size={18} />
               <p>{Icon.name}</p>

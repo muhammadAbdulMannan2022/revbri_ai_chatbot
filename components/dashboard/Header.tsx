@@ -37,17 +37,17 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white h-20">
-      <div className="h-1.5 bg-dashboardMain w-full" />
+      <div className="h-1.5 bg-[#FF6F6F] w-full" />
 
       <div className="h-18.5 border-b border-gray-100 flex items-center justify-between px-6 md:px-12">
         {/* Left */}
         <div className="flex items-center gap-4">
           <Image src={logo} className="h-8 md:h-10" alt="BMC" />
           <div>
-            <h1 className="text-3xl font-sans text-gray-800 font-bold">
+            <h1 className="text-lg md:text-3xl font-sans text-gray-800 font-bold">
               Black <span className="text-red-400">Millennial</span> Café
             </h1>
-            <span className="block text-[8px] font-normal text-gray-600 tracking-wide uppercase">
+            <span className="block text-[7px] md:text-[8px] font-normal text-gray-600 tracking-wide uppercase">
               Serving all things black, community and emerging generations
             </span>
           </div>
@@ -77,36 +77,35 @@ export const Header: React.FC<HeaderProps> = ({
               />
             </div>
 
-            <div className="hidden md:flex items-center gap-2 text-text-2nd">
+            <div className="hidden md:flex items-center gap-2 text-gray-700">
               <span className="font-bold text-sm ">{userName}</span>
             </div>
             <ChevronRight
               size={16}
-              className={`transition text-text-2nd ${open ? "rotate-90" : ""}`}
+              className={`transition hidden md:block text-gray-600 ${open ? "rotate-90" : ""}`}
             />
           </div>
 
           {/* Dropdown */}
           {open && (
             <div className="absolute right-0 top-full mt-3 w-52 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in text-gray-700">
-              <button className="w-full md:hidden flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm font-medium hover:cursor-pointer border">
+              <button
+                onClick={() => navigate.push("/dashboard/plan")}
+                className="w-full md:hidden flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm font-medium hover:cursor-pointer"
+              >
                 <Globe size={18} />
                 Upgrade Plan
               </button>
-              <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm font-medium text-text-2nd hover:cursor-pointer">
+              <button
+                onClick={() => navigate.push("/dashboard/profile")}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm font-medium text-text-2nd hover:cursor-pointer"
+              >
                 <User size={18} />
                 Profile
               </button>
               <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm font-medium text-text-2nd hover:cursor-pointer">
                 <Lock size={18} />
                 Change Password
-              </button>
-              <button
-                onClick={() => navigate.push("/dashboard/settings")}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm font-medium text-text-2nd hover:cursor-pointer"
-              >
-                <Settings size={18} />
-                Settings
               </button>
             </div>
           )}

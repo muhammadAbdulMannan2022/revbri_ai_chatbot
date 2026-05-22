@@ -14,8 +14,6 @@ export default function MessageBox({
   setFiles: Function;
   onSend: Function;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleSend = () => {
     onSend();
   };
@@ -24,12 +22,6 @@ export default function MessageBox({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
-    }
-  };
-
-  const handleAttachmentClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
     }
   };
 
@@ -83,24 +75,6 @@ export default function MessageBox({
         </div>
       )}
       <div className="w-full max-w-4xl bg-white rounded-full shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-200 mx-3">
-        {/* Attachment Button */}
-        <button
-          onClick={handleAttachmentClick}
-          className="shrink-0 p-2 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
-          aria-label="Attach file"
-        >
-          <Paperclip className="w-5 h-5 text-gray-500" />
-        </button>
-
-        <input
-          type="file"
-          multiple
-          accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-        />
-
         {/* Input */}
         <input
           type="text"
@@ -108,7 +82,7 @@ export default function MessageBox({
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Start chat"
-          className="flex-1 py-2 ps-4 rounded-full outline-none text-gray-800 placeholder-gray-400 text-sm md:text-base min-w-0 bg-[#EFF2F6] md:min-w-100"
+          className="flex-1 py-3 md:py-2 ps-4 rounded-full outline-none text-gray-800 placeholder-gray-400 text-sm md:text-base min-w-0 bg-[#EFF2F6] md:min-w-100"
         />
 
         {/* Voice Button */}

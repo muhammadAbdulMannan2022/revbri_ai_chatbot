@@ -13,7 +13,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden font-sans bg-black text-white ">
+    <div className="flex flex-col overflow-hidden font-sans bg-black text-white ">
       {/* Header */}
       <Header onMenuClick={() => toggleSidebar()} />
 
@@ -23,7 +23,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
         {/* Main area with Outlet - shares space with sidebar */}
-        <main className="overflow-y-auto flex-1 h-[calc(100vh-5rem)] mt-20 bg-white">
+        <main className="overflow-y-auto flex-1 h-[calc(100vh-5rem)] mt-20 bg-linear-to-br from-[#DDDCE9] to-[#F8FAFC] ">
           {children}
         </main>
       </div>
