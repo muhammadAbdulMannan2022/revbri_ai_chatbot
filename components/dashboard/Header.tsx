@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white h-20">
-      <div className="h-1.5 bg-dashboardMain w-full" />
+      <div className="h-1.5 bg-[#FF6F6F] w-full" />
 
       <div className="h-18.5 border-b border-gray-100 flex items-center justify-between px-6 md:px-12">
         {/* Left */}

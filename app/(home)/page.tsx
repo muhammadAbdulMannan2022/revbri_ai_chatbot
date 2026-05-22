@@ -1,9 +1,10 @@
-import React from 'react';
+import React from "react";
+import HomeHero from "@/components/home/Hero";
 
 export default function LandingPage() {
   return (
-    <div>
-      <h2>Welcome to the Landing Page</h2>
+    <div className="w-full">
+      <HomeHero />
     </div>
   );
 }
