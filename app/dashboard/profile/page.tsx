@@ -42,7 +42,7 @@ const AccountSettings: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-8 min-h-screen font-sans">
+    <div className="max-w-6xl mx-auto p-8 min-h-screen font-sans bg-white">
       <h1 className="text-3xl font-bold mb-2 text-gray-700">
         Account Settings
       </h1>

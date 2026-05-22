@@ -101,13 +101,11 @@ function MessageDisplay({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center h-full">
-          <h2 className="text-2xl font-bold text-dashboardMain">
-            Type to start chat
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Create assignment and then Chat with your agents
-          </p>
+        <div className="flex flex-col items-center justify-end py-10 h-full">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-700">Hi, There!</h2>
+            <p className="text-gray-500 mt-2">Let’s start the chat now!!</p>
+          </div>
         </div>
       )}
     </div>
