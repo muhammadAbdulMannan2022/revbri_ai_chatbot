@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat, Great_Vibes } from 'next/font/google';
 import "./globals.css";
+
+// 1. Configured with standard CSS variable hooks
+const sansFont = Montserrat({ 
+  subsets: ['latin'], 
+  weight: ['800', '900'],
+  variable: '--font-montserrat' 
+});
+
+const scriptFont = Great_Vibes({ 
+  subsets: ['latin'], 
+  weight: ['400'],
+  variable: '--font-great-vibes' 
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sansFont.variable} ${scriptFont.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}

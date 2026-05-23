@@ -1,88 +1,95 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X } from "lucide-react";
-import logo from "@/assets/main/logo.png";
-import { FaFacebook } from "react-icons/fa";
-import { BsInstagram, BsTelephoneFill } from "react-icons/bs";
-import { FaXTwitter } from "react-icons/fa6";
+import { Menu, X } from "lucide-react";
 
 export default function HomeNavbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleMenu = () => setIsOpen(!isOpen);
+
   return (
     <header className="sticky top-0 z-50">
-      <div className="bg-white border-b border-slate-200 text-slate-700">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-2 text-xs sm:px-6 md:text-sm">
-          <div className="flex items-center gap-3">
-            <div>
-              <BsTelephoneFill size={16} />
-            </div>
-            <span className="font-medium">(972) 532-3207</span>
-          </div>
-
-          <div className="hidden flex-1 justify-center md:flex">
-            <Link
-              href="/"
-              className="inline-flex items-center rounded-full bg-[#E86160] px-4 py-2 text-white shadow-sm transition hover:bg-[#E86160]/90"
-            >
-              Schedule a Discovery Call
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="https://facebook.com"
-              className="text-slate-700 transition hover:text-slate-900"
-            >
-              <FaFacebook size={16} />
-            </Link>
-            <Link
-              href="https://twitter.com"
-              className="text-slate-700 transition hover:text-slate-900"
-            >
-              <FaXTwitter size={16} />
-            </Link>
-            <Link
-              href="https://instagram.com"
-              className="text-slate-700 transition hover:text-slate-900"
-            >
-              <BsInstagram size={16} />
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#1F1F1F] text-white">
+      {/* Main Navbar */}
+      <div className="bg-[#000000F2] text-white border-b border-white/5 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          
+          {/* Logo Section */}
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-auto items-center justify-center ">
+            <div className="flex h-12 w-auto items-center justify-center">
               <Image
-                src={logo}
-                alt="BMC"
-                width={90}
-                height={40}
+                src="/images/logo.png"
+                alt="BCL Logo"
+                width={48}
+                height={48}
                 className="object-contain"
               />
             </div>
             <div>
-              <p className="text-base font-semibold tracking-tight">
-                Black Millennial Café
+              {/* Fixed the text-[10] error to text-[10px] */}
+              <p className="text-[10px] font-normal uppercase tracking-wider text-[#99A1AF]">
+                Black Church Leader
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop Authentication Actions */}
+          <div className="hidden md:flex items-center gap-4">
             <Link
               href="/auth/login"
-              className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+              className="rounded-full bg-[#433939] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#433939]/80"
             >
-              Login
+              Log In
             </Link>
             <Link
-              href="/auth/login"
-              className="rounded-full bg-[#E86160] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#E86160]/90"
+              href="/auth/register"
+              className="rounded-full bg-[#E86160] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#E86160]/90"
             >
-              Sign Up
+              Join Now
             </Link>
           </div>
+
+          {/* Mobile Menu Toggle Button */}
+          <div className="flex md:hidden">
+            <button
+              onClick={toggleMenu}
+              type="button"
+              className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/10 hover:text-white focus:outline-none transition"
+              aria-controls="mobile-menu"
+              aria-expanded={isOpen}
+            >
+              <span className="sr-only">Open main menu</span>
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Drawer Overlay */}
+      <div
+        className={`md:hidden fixed inset-0 top-[80px] z-40 w-full bg-black/95 backdrop-blur-lg transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+        id="mobile-menu"
+      >
+        <div className="flex flex-col space-y-4 px-6 py-8 h-full justify-start items-center">
+          {/* Mobile Actions Stack */}
+          <Link
+            onClick={() => setIsOpen(false)}
+            href="/auth/login"
+            className="w-full text-center rounded-full bg-[#433939] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition active:scale-[0.98]"
+          >
+            Log In
+          </Link>
+          <Link
+            onClick={() => setIsOpen(false)}
+            href="/auth/register"
+            className="w-full text-center rounded-full bg-[#E86160] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition active:scale-[0.98] shadow-lg shadow-[#E86160]/20"
+          >
+            Join Now
+          </Link>
         </div>
       </div>
     </header>

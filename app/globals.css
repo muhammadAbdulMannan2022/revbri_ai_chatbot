@@ -2,6 +2,8 @@
 @import "tailwindcss";
 
 @theme {
+  --font-montserrat: var(--font-montserrat), sans-serif;
+  --font-great-vibes: var(--font-great-vibes), cursive;
   --font-sans: "Open Sans", Arial, Helvetica, sans-serif;
 }
 

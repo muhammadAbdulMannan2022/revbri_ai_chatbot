@@ -63,16 +63,22 @@ export default function HomeFooter() {
           {/* Logo & Contact details */}
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-14 w-auto items-center justify-center">
-                <Image
-                  src={logo}
-                  alt="BMC Logo"
-                  width={110}
-                  height={50}
-                  className="object-contain filter brightness-110"
-                />
-              </div>
+            <div className="flex h-12 w-auto items-center justify-center">
+              <Image
+                src="/images/logo.png"
+                alt="BCL Logo"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
             </div>
+            <div>
+              {/* Fixed the text-[10] error to text-[10px] */}
+              <p className="text-[10px] font-normal uppercase tracking-wider text-[#99A1AF]">
+                Black Church Leader
+              </p>
+            </div>
+          </div>
             
             <div className="flex flex-col gap-1 text-sm text-gray-400">
               <p className="font-semibold text-gray-300">(972) 532-3207</p>
