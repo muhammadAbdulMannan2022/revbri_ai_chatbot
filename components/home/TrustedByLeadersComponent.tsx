@@ -20,7 +20,7 @@ const TrustedByLeadersComponent = () => {
     },
   ];
 
-  const renderStars = (count) => {
+  const renderStars = (count:number) => {
     return (
       <div className="flex items-center mb-3">
         {[...Array(count)].map((_, i) => (
