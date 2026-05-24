@@ -13,7 +13,7 @@ export default function TrustInsightSection() {
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         
         {/* Main Banner Heading Header */}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-wider text-center text-white mb-16 md:mb-24 uppercase max-w-5xl px-2 leading-tight">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-inter text-center text-white mb-16 md:mb-24 uppercase max-w-5xl px-2 leading-tight">
           Research. Insight. Authority You Can Trust.
         </h2>
 
@@ -24,7 +24,7 @@ export default function TrustInsightSection() {
           <div className="lg:col-span-3 flex flex-col justify-center py-4 lg:pr-4">
             <ul className="space-y-6">
               {bulletStats.map((stat, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-base sm:text-lg font-medium text-gray-300">
+                <li key={idx} className="flex items-center gap-3 text-base  font-normal text-[#D1D5DC]">
                   {/* Styled Coral Bullet Node */}
                   <span className="w-2 h-2 rounded-full bg-[#E56363] flex-shrink-0" />
                   <span>{stat}</span>
@@ -36,13 +36,13 @@ export default function TrustInsightSection() {
           {/* Column 2: Recent Intelligence Brief Card (Spans 3/12 spaces on desktop) */}
           <div className="lg:col-span-3 bg-[#18181C] border border-gray-800/40 rounded-[20px] p-8 flex flex-col justify-between shadow-xl min-h-[340px]">
             <div>
-              <span className="text-xs font-bold tracking-wider text-[#F97316] uppercase block mb-4">
+              <span className="text-xs font-bold  text-[#FAA333]  block mb-4">
                 Recent Intelligence Brief
               </span>
-              <h3 className="text-2xl font-black text-white mb-3 tracking-wide">
+              <h3 className="text-2xl font-bold text-white mb-3 ">
                 The Silent Exodus
               </h3>
-              <p className="text-sm text-gray-400 font-light leading-relaxed">
+              <p className="text-sm text-[#99A1AF] font-normal ">
                 Why churches are losing people (and what to do about it).
               </p>
             </div>
@@ -50,7 +50,7 @@ export default function TrustInsightSection() {
             <div className="pt-6">
               <a 
                 href="#" 
-                className="inline-flex items-center text-sm font-extrabold tracking-wide text-[#E56363] hover:text-red-400 uppercase transition-colors group"
+                className="inline-flex items-center text-sm font-bold text-[#E86161] hover:text-red-400  transition-colors group"
               >
                 Read the Brief 
                 <span className="inline-block transform transition-transform duration-200 group-hover:translate-x-1 ml-1.5">
@@ -63,20 +63,20 @@ export default function TrustInsightSection() {
           {/* Column 3: Trend Spotlight Card (Spans 3/12 spaces on desktop) */}
           <div className="lg:col-span-3 bg-[#18181C] border border-gray-800/40 rounded-[20px] p-8 flex flex-col justify-between shadow-xl min-h-[340px]">
             <div>
-              <span className="text-xs font-bold tracking-wider text-[#E56363] uppercase block mb-4">
+              <span className="text-xs font-bold  text-[#E86161]  block mb-4">
                 Trend Spotlight
               </span>
-              <h3 className="text-xl sm:text-2xl font-black text-white leading-snug tracking-wide">
+              <h3 className="text-xl md:text-[20px] font-bold text-white ">
                 Engagement is down.<br />Connection is up.
               </h3>
             </div>
 
             {/* Circular Graphic Metric Ring Callout */}
             <div className="flex items-center gap-4 mt-6">
-              <div className="w-16 h-16 rounded-full bg-[#E56363]/10 border border-[#E56363]/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg font-black text-[#E56363]">62%</span>
+              <div className="w-18 h-18 rounded-full bg-[#E8616126]  flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl font-bold ">62%</span>
               </div>
-              <p className="text-xs text-gray-400 font-light leading-relaxed flex-1">
+              <p className="text-xs text-[#99A1AF] font-normal  flex-1">
                 of churchgoers say relationships keep them coming back.
               </p>
             </div>
@@ -85,7 +85,7 @@ export default function TrustInsightSection() {
           {/* Column 4: Testimonial/Quote Card (Spans 3/12 spaces on desktop) */}
           <div className="lg:col-span-3 bg-[#18181C] border border-gray-800/40 rounded-[20px] p-8 flex flex-col justify-between shadow-xl min-h-[340px]">
             <div>
-              <span className="text-xs font-bold tracking-wider text-gray-500 uppercase block mb-4">
+              <span className="text-normal font-bold  text-[#6A7282] uppercase block mb-4">
                 What Leaders Are Saying
               </span>
               
@@ -95,12 +95,12 @@ export default function TrustInsightSection() {
                 <div className="w-1.5 h-4 bg-[#E56363] rounded-sm opacity-80" />
               </div>
 
-              <p className="text-sm text-gray-300 font-light leading-relaxed italic">
+              <p className="text-base text-[#D1D5DC] font-normal ">
                 "BCL Inside keeps me informed on what's happening in the Church and helps me lead proactively."
               </p>
             </div>
 
-            <div className="pt-4 text-xs font-bold tracking-wide">
+            <div className="pt-4 text-base font-medium ">
               <span className="text-gray-400">Pastor J. Carter </span>
               <span className="text-[#F97316]">— Atlanta, GA</span>
             </div>

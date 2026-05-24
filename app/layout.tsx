@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Montserrat, Great_Vibes } from 'next/font/google';
+import { Geist, Geist_Mono, Montserrat, Great_Vibes,Nunito_Sans,Inter } from 'next/font/google';
 import "./globals.css";
 
 // 1. Configured with standard CSS variable hooks
@@ -7,6 +7,16 @@ const sansFont = Montserrat({
   subsets: ['latin'], 
   weight: ['800', '900'],
   variable: '--font-montserrat' 
+});
+const NunitoSans = Nunito_Sans({ 
+  subsets: ['latin'], 
+  weight: ['400','500','600','700','800', '900'],
+  variable: '--font-nunito-sans'
+});
+const InterSans = Inter({ 
+  subsets: ['latin'], 
+  weight: ['400','500','600','700','800', '900'],
+  variable: '--font-inter-sans'
 });
 
 const scriptFont = Great_Vibes({ 
@@ -38,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${sansFont.variable} ${scriptFont.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sansFont.variable} ${scriptFont.variable} ${NunitoSans.variable} ${InterSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}

@@ -28,6 +28,19 @@ export default function SidebarChatList() {
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
+  // Creates a new chat, puts it at the top, and focuses it
+  const handleCreateNewChat = () => {
+    const newChatId = Date.now(); // Guarantees a unique ID
+    const newChat: Chat = {
+      id: newChatId,
+      title: "New Chat Session",
+    };
+
+    setChats((prev) => [newChat, ...prev]);
+    setActiveId(newChatId);
+    setActionOpenId(null); // Clear any open action menus
+  };
+
   const handleDelete = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     setChats((prev) => prev.filter((c) => c.id !== id));
@@ -38,9 +51,12 @@ export default function SidebarChatList() {
     <div className="w-full bg-white flex flex-col">
       {/* New Chat Button */}
       <div className="bg-white sticky top-0 z-10">
-        <button className="flex items-center justify-center gap-2 w-full p-3 mb-6 border border-gray-200 rounded-lg text-[#FD6E6E] hover:cursor-pointer hover:bg-gray-100 transition-colors">
+        <button
+          onClick={handleCreateNewChat}
+          className="flex items-center justify-center gap-2 w-full p-3 mb-6 border border-gray-200 rounded-lg text-[#FD6E6E] hover:cursor-pointer hover:bg-gray-100 transition-colors font-medium"
+        >
           <SquarePen size={18} />
-          <span className="font-medium">New chat</span>
+          <span>New chat</span>
         </button>
       </div>
 
@@ -93,7 +109,7 @@ export default function SidebarChatList() {
                       <span>Delete chat</span>
                     </button>
                   </div>
-                  <span className="w-4 h-5 bg-white  absolute rotate-45 top-[110%] right-2 border border-gray-300" />
+                  <span className="w-4 h-5 bg-white absolute rotate-45 top-[110%] right-2 border border-gray-300" />
                 </>
               )}
             </div>

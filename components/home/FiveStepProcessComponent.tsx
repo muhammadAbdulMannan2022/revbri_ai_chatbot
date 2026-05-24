@@ -35,7 +35,7 @@ export default function HowItWorksSection() {
         
         {/* Section Heading */}
         <div className="text-center mb-16 md:mb-24">
-          <span className="text-xs sm:text-sm font-black tracking-[0.2em] text-[#E56363] uppercase">
+          <span className="text-xs md:text-[16px] font-bold  text-primary uppercase">
             How BCL Works For You™
           </span>
         </div>
@@ -53,16 +53,16 @@ export default function HowItWorksSection() {
               className="relative z-10 flex flex-row lg:flex-col items-start lg:items-center text-left lg:text-center flex-1 group gap-4 lg:gap-0"
             >
               {/* Step Number Circle */}
-              <div className="w-12 h-12 rounded-2xl bg-[#E56363] text-white flex items-center justify-center font-bold text-base md:text-lg shadow-lg shadow-[#E56363]/30 flex-shrink-0 lg:mb-6 transition-transform duration-300 group-hover:scale-110">
+              <div className="w-12 h-12 rounded-2xl bg-[#E86161] font-inter font-bold text-white flex items-center justify-center  text-base md:text-lg shadow-lg shadow-[#E56363]/30 flex-shrink-0 lg:mb-6 transition-transform duration-300 group-hover:scale-110">
                 {step.number}
               </div>
 
               {/* Text Content */}
               <div className="flex flex-col pt-1 lg:pt-0 lg:px-2">
-                <h3 className="text-[12px] font-bold text-[#111827] mb-2 tracking-wide">
+                <h3 className="text-[18px] font-bold text-[#101828] mb-2 ">
                   {step.title}
                 </h3>
-                <p className="text-sm text-gray-500 leading-relaxed font-normal max-w-sm lg:max-w-none">
+                <p className="text-sm text-[#4A5565]  font-normal max-w-sm lg:max-w-none">
                   {step.description}
                 </p>
               </div>

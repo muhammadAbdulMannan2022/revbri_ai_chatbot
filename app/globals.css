@@ -2,8 +2,12 @@
 @import "tailwindcss";
 
 @theme {
+    --color-primary: #E86161;
+
   --font-montserrat: var(--font-montserrat), sans-serif;
   --font-great-vibes: var(--font-great-vibes), cursive;
+  --font-nunito: var(--font-nunito-sans), sans-serif;
+  --font-inter: var(--font-inter-sans), sans-serif;
   --font-sans: "Open Sans", Arial, Helvetica, sans-serif;
 }
 

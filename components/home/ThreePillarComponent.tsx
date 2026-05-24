@@ -5,8 +5,8 @@ export default function ThreePillarsSection() {
     {
       badge: 'BCL INSIDE™',
       title: 'INTELLIGENCE',
-      borderColor: 'border-[#E06666]/30', // Custom subtle coral border
-      accentColor: 'bg-[#E06666]',
+      borderColor: 'border-[#E86161]', 
+      accentColor: 'bg-[#E86161]',
       bulletColor: 'text-[#E06666]',
       buttonText: 'EXPLORE INSIDE',
       features: [
@@ -19,8 +19,8 @@ export default function ThreePillarsSection() {
     {
       badge: 'BCL AI™',
       title: 'STRATEGY',
-      borderColor: 'border-[#E69138]/30', // Custom subtle orange border
-      accentColor: 'bg-[#E69138]',
+      borderColor: 'border-[#FAA333]',
+      accentColor: 'bg-[#FAA333]',
       bulletColor: 'text-[#E69138]',
       buttonText: 'TRY BCL AI',
       features: [
@@ -33,8 +33,8 @@ export default function ThreePillarsSection() {
     {
       badge: 'BCL LABS™',
       title: 'IMPLEMENTATION',
-      borderColor: 'border-[#6AA84F]/30', // Custom subtle green border
-      accentColor: 'bg-[#6AA84F]',
+      borderColor: 'border-[#4DD98C]',
+      accentColor: 'bg-[#4DD98C]',
       bulletColor: 'text-[#6AA84F]',
       buttonText: 'JOIN LABS',
       features: [
@@ -52,10 +52,10 @@ export default function ThreePillarsSection() {
         
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <span className="text-xs sm:text-sm font-extrabold tracking-[0.2em] text-[#E69138] uppercase">
+          <span className="text-xs sm:text-sm font-inter text-[#FAA333] uppercase">
             Three Pillars. One Purpose.
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal leading-relaxed text-gray-200 px-2">
+          <h2 className="text-2xl md:text-[24px] font-normal leading-relaxed text-[#D1D5DC] px-2">
             Everything you need to lead with clarity,<br className="hidden sm:inline" /> 
             make better decisions, and create lasting impact.
           </h2>
@@ -66,17 +66,17 @@ export default function ThreePillarsSection() {
           {cards.map((card, index) => (
             <div
               key={index}
-              className={`bg-[#18181C]/90 border ${card.borderColor} rounded-[20px] p-8 md:p-10 flex flex-col justify-between shadow-2xl transition-all duration-300 hover:translate-y-[-4px] hover:bg-[#1C1C21]`}
+              className={`bg-[#18181C]/90  border-[0.5px] ${card.borderColor} rounded-[20px] p-8 md:p-10 flex flex-col justify-between shadow-2xl transition-all duration-300 hover:translate-y-[-4px] hover:bg-[#1C1C21]`}
             >
               {/* Card Top Content */}
               <div>
                 {/* Product Badge */}
-                <span className={`text-xs font-black tracking-wider uppercase block mb-2 ${card.bulletColor}`}>
+                <span className={`text-xs font-bold  uppercase block mb-2 ${card.bulletColor}`}>
                   {card.badge}
                 </span>
                 
                 {/* Card Main Title */}
-                <h3 className="text-2xl sm:text-3xl font-black tracking-wide text-white mb-5 uppercase break-words">
+                <h3 className="text-2xl sm:text-3xl font-bold font-inter  text-white mb-5 uppercase break-words">
                   {card.title}
                 </h3>
                 
@@ -88,7 +88,7 @@ export default function ThreePillarsSection() {
                   {card.features.map((feature, featureIdx) => (
                     <li key={featureIdx} className="flex items-start gap-3 text-sm sm:text-base text-gray-300 font-light">
                       {/* CSS Styled Bullet matching exact colors */}
-                      <span className={`inline-block text-lg leading-none select-none mt-0.5 ${card.bulletColor}`}>
+                      <span className={`inline-block text-sm font-normal font-inter text-[#D1D5DC] select-none mt-0.5 ${card.bulletColor}`}>
                         •
                       </span>
                       <span>{feature}</span>
@@ -98,7 +98,7 @@ export default function ThreePillarsSection() {
               </div>
 
               {/* Action Button at Bottom */}
-              <button className="w-full bg-[#E56363] hover:bg-[#DC4F4F] text-white font-extrabold text-xs sm:text-sm tracking-[0.15em] uppercase py-4 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-red-950/20">
+              <button className="w-full bg-primary font-inter cursor-pointer leading-relaxed hover:bg-[#DC4F4F] text-white font-bold text-xs uppercase py-4 px-6 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-red-950/20">
                 {card.buttonText}
               </button>
             </div>

@@ -6,33 +6,33 @@ export default function FeaturedSolutions() {
       category: 'Discipleship',
       title: 'CEBA Journey',
       description: 'Build and equip your congregation with proven tools and frameworks.',
-      textColor: 'text-[#A855F7]', // Purple
-      borderColor: 'border-[#A855F7]',
-      accentBg: 'bg-[#A855F7]',
+      textColor: 'text-[#9E7ADD]', // Purple
+      borderColor: 'border-[#9E7ADD]',
+      accentBg: 'bg-[#9E7ADD]',
     },
     {
       category: 'Planning',
       title: 'Vision Year Lab',
       description: 'Build and equip your congregation with proven tools and frameworks.',
-      textColor: 'text-[#F97316]', // Orange
-      borderColor: 'border-[#F97316]',
-      accentBg: 'bg-[#F97316]',
+      textColor: 'text-[#FAA333]', // Orange
+      borderColor: 'border-[#FAA333]',
+      accentBg: 'bg-[#FAA333]',
     },
     {
       category: 'Strategy',
       title: 'BCL AI',
       description: 'Build and equip your congregation with proven tools and frameworks.',
-      textColor: 'text-[#38BDF8]', // Sky Blue
-      borderColor: 'border-[#38BDF8]',
-      accentBg: 'bg-[#38BDF8]',
+      textColor: 'text-[#4DC7FA]', // Sky Blue
+      borderColor: 'border-[#4DC7FA]',
+      accentBg: 'bg-[#4DC7FA]',
     },
     {
       category: 'Training',
       title: 'Replay Vault',
       description: 'Build and equip your congregation with proven tools and frameworks.',
-      textColor: 'text-[#4ADE80]', // Light Green
-      borderColor: 'border-[#4ADE80]',
-      accentBg: 'bg-[#4ADE80]',
+      textColor: 'text-[#99E099]', // Light Green
+      borderColor: 'border-[#99E099]',
+      accentBg: 'bg-[#99E099]',
     },
   ];
 
@@ -42,10 +42,10 @@ export default function FeaturedSolutions() {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <span className="text-xs md:text-sm font-extrabold tracking-[0.2em] text-[#E56363] uppercase block">
+          <span className="text-xs md:text-base font-bold  text-primary font-inter uppercase block">
             Featured Solutions
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-[42px] font-black tracking-tight text-[#111827]">
+          <h2 className="text-3xl md:text-4xl lg:text-[48px] font-bold text-[#101828]">
             Built for Real Ministry Challenges
           </h2>
         </div>
@@ -64,12 +64,12 @@ export default function FeaturedSolutions() {
               <div className="p-8 flex flex-col justify-between h-full flex-1 pt-9">
                 <div>
                   {/* Category Small Tag */}
-                  <span className={`text-xs font-bold tracking-wide uppercase block mb-3 ${item.textColor}`}>
+                  <span className={`text-xs font-bold font-inter uppercase block mb-3 ${item.textColor}`}>
                     {item.category}
                   </span>
                   
                   {/* Card Main Header Title */}
-                  <h3 className="text-xl font-black text-[#111827] mb-4 tracking-tight">
+                  <h3 className="text-[24px] font-inter font-bold text-[#101828] mb-4 ">
                     {item.title}
                   </h3>
                   
@@ -77,7 +77,7 @@ export default function FeaturedSolutions() {
                   <div className={`w-8 h-[2px] mb-6 ${item.accentBg}`} />
 
                   {/* Description text */}
-                  <p className="text-sm text-gray-500 leading-relaxed font-normal mb-8">
+                  <p className="text-sm text-[#4A5565]  font-normal mb-8">
                     {item.description}
                   </p>
                 </div>
@@ -86,7 +86,7 @@ export default function FeaturedSolutions() {
                 <div className="pt-2">
                   <a 
                     href="#" 
-                    className="inline-flex items-center text-xs font-extrabold tracking-[0.15em] text-[#E56363] hover:text-red-600 transition-colors uppercase group"
+                    className="inline-flex items-center text-xs font-bold  text-primary hover:text-red-600 transition-colors uppercase group"
                   >
                     Explore 
                     <span className="inline-block transform transition-transform duration-200 group-hover:translate-x-1 ml-1 text-sm leading-none">
