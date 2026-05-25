@@ -1,47 +1,47 @@
-import React from 'react';
+import React from "react";
 
 export default function ThreePillarsSection() {
   const cards = [
     {
-      badge: 'BCL INSIDE™',
-      title: 'INTELLIGENCE',
-      borderColor: 'border-[#E86161]', 
-      accentColor: 'bg-[#E86161]',
-      bulletColor: 'text-[#E06666]',
-      buttonText: 'EXPLORE INSIDE',
+      badge: "BCL INSIDE™",
+      title: "INTELLIGENCE",
+      borderColor: "border-[#E86161]",
+      accentColor: "bg-[#E86161]",
+      bulletColor: "text-[#E06666]",
+      buttonText: "EXPLORE INSIDE",
       features: [
-        'Monthly Intelligence Briefs',
-        'Trend & Analysis Reports',
-        'Research Summaries',
-        'Future Forecasts',
+        "Monthly Intelligence Briefs",
+        "Trend & Analysis Reports",
+        "Research Summaries",
+        "Future Forecasts",
       ],
     },
     {
-      badge: 'BCL AI™',
-      title: 'STRATEGY',
-      borderColor: 'border-[#FAA333]',
-      accentColor: 'bg-[#FAA333]',
-      bulletColor: 'text-[#E69138]',
-      buttonText: 'TRY BCL AI',
+      badge: "BCL AI™",
+      title: "STRATEGY",
+      borderColor: "border-[#FAA333]",
+      accentColor: "bg-[#FAA333]",
+      bulletColor: "text-[#E69138]",
+      buttonText: "TRY BCL AI",
       features: [
-        'Ask Leadership Questions',
-        'Ministry Planning Support',
-        'Discipleship Guidance',
-        'Programming Ideas',
+        "Ask Leadership Questions",
+        "Ministry Planning Support",
+        "Discipleship Guidance",
+        "Programming Ideas",
       ],
     },
     {
-      badge: 'BCL LABS™',
-      title: 'IMPLEMENTATION',
-      borderColor: 'border-[#4DD98C]',
-      accentColor: 'bg-[#4DD98C]',
-      bulletColor: 'text-[#6AA84F]',
-      buttonText: 'JOIN LABS',
+      badge: "BCL LABS™",
+      title: "IMPLEMENTATION",
+      borderColor: "border-[#4DD98C]",
+      accentColor: "bg-[#4DD98C]",
+      bulletColor: "text-[#6AA84F]",
+      buttonText: "JOIN LABS",
       features: [
-        'Monthly Webinars & Replays',
-        'Tools & Templates',
-        'CEBA Journey™ Access',
-        'Vision Year Lab™ Tools',
+        "Monthly Webinars & Replays",
+        "Tools & Templates",
+        "CEBA Journey™ Access",
+        "Vision Year Lab™ Tools",
       ],
     },
   ];
@@ -49,14 +49,14 @@ export default function ThreePillarsSection() {
   return (
     <section className="w-full bg-[#09090A] text-white py-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-red-900/40">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
-        
         {/* Header Section */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <span className="text-xs sm:text-sm font-inter text-[#FAA333] uppercase">
             Three Pillars. One Purpose.
           </span>
           <h2 className="text-2xl md:text-[24px] font-normal leading-relaxed text-[#D1D5DC] px-2">
-            Everything you need to lead with clarity,<br className="hidden sm:inline" /> 
+            Everything you need to lead with clarity,
+            <br className="hidden sm:inline" />
             make better decisions, and create lasting impact.
           </h2>
         </div>
@@ -71,24 +71,33 @@ export default function ThreePillarsSection() {
               {/* Card Top Content */}
               <div>
                 {/* Product Badge */}
-                <span className={`text-xs font-bold  uppercase block mb-2 ${card.bulletColor}`}>
+                <span
+                  className={`text-xs font-bold  uppercase block mb-2 ${card.bulletColor}`}
+                >
                   {card.badge}
                 </span>
-                
+
                 {/* Card Main Title */}
                 <h3 className="text-2xl sm:text-3xl font-bold font-inter  text-white mb-5 uppercase break-words">
                   {card.title}
                 </h3>
-                
+
                 {/* Colorful Accent Divider Line */}
-                <div className={`w-10 h-1 rounded-full mb-8 ${card.accentColor}`} />
+                <div
+                  className={`w-10 h-1 rounded-full mb-8 ${card.accentColor}`}
+                />
 
                 {/* Features List */}
                 <ul className="space-y-4 mb-12">
                   {card.features.map((feature, featureIdx) => (
-                    <li key={featureIdx} className="flex items-start gap-3 text-sm sm:text-base text-gray-300 font-light">
+                    <li
+                      key={featureIdx}
+                      className="flex items-start gap-3 text-sm sm:text-base text-gray-300 font-light"
+                    >
                       {/* CSS Styled Bullet matching exact colors */}
-                      <span className={`inline-block text-sm font-normal font-inter text-[#D1D5DC] select-none mt-0.5 ${card.bulletColor}`}>
+                      <span
+                        className={`inline-block text-sm font-normal font-inter text-[#D1D5DC] select-none mt-0.5 ${card.bulletColor}`}
+                      >
                         •
                       </span>
                       <span>{feature}</span>
@@ -104,7 +113,6 @@ export default function ThreePillarsSection() {
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );
