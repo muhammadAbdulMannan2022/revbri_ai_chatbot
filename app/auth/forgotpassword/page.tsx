@@ -2,19 +2,26 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail } from "lucide-react";
 import BackButton from "@/lib/BackButton";
+import { useForgotPasswordMutation } from "@/lib/authApi";
+import { useAppDispatch } from "@/lib/hooks";
+import { setEmail } from "@/lib/authSlice";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 export default function ForgotPassword() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
+  const dispatch = useAppDispatch();
 
   interface ForgotPasswordData {
     email: string;
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(
@@ -26,12 +33,15 @@ export default function ForgotPassword() {
       return;
     }
 
-    console.log("Sending recovery link to:", data.email);
-
-    // Redirect to the OTP verification page, passing the email and flow context in the URL params
-    router.push(
-      `/auth/verifyOtp?email=${encodeURIComponent(data.email)}&from=forgot`,
-    );
+    try {
+      await forgotPassword({ email: data.email }).unwrap();
+      dispatch(setEmail(data.email));
+      router.push(
+        `/auth/verifyOtp?email=${encodeURIComponent(data.email)}&from=forgot`,
+      );
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
+    }
   };
 
   return (
@@ -40,7 +50,6 @@ export default function ForgotPassword() {
         <BackButton />
       </div>
       <div className="w-full max-w-md flex flex-col items-center">
-        {/* Header Section */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-semibold text-gray-900 tracking-wide mb-3">
             Forgot Password
@@ -51,9 +60,7 @@ export default function ForgotPassword() {
           </p>
         </div>
 
-        {/* Form Section */}
         <form onSubmit={handleSubmit} className="w-full space-y-6">
-          {/* Email Input Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -66,26 +73,26 @@ export default function ForgotPassword() {
                 name="email"
                 type="email"
                 placeholder="user@mail.com"
-                className={`w-full pl-11 pr-4 py-3.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm placeholder-gray-300 transition-all
-                  ${error ? "border-red-500" : "border-gray-200"}`}
+                className={`w-full pl-11 pr-4 py-3.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm placeholder-gray-300 transition-all ${
+                  error ? "border-red-500" : "border-gray-200"
+                }`}
                 required
               />
             </div>
           </div>
 
-          {/* Error Message Layout */}
           {error && (
             <p className="text-red-500 text-xs font-medium text-center">
               {error}
             </p>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full hover:cursor-pointer bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-medium py-3.5 rounded-xl transition-all duration-200 shadow-sm shadow-red-100 active:scale-[0.99] text-sm tracking-wide"
+            disabled={isLoading}
+            className="w-full hover:cursor-pointer disabled:opacity-60 bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-medium py-3.5 rounded-xl transition-all duration-200 shadow-sm shadow-red-100 active:scale-[0.99] text-sm tracking-wide"
           >
-            Send Verification Code
+            {isLoading ? "Sending code..." : "Send Verification Code"}
           </button>
         </form>
       </div>

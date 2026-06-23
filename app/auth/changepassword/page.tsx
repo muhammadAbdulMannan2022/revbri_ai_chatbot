@@ -1,22 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { useResetPasswordMutation } from "@/lib/authApi";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 export default function ChangePassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   interface ChangePasswordData {
     newPassword: string;
     confirmNewPassword: string;
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(
@@ -28,24 +34,27 @@ export default function ChangePassword() {
       return;
     }
 
-    setError("");
-    console.log("Password updated successfully!");
+    if (!email) {
+      setError("Unable to reset password without email.");
+      return;
+    }
 
-    // Redirect to login or success screen
-    router.push("/auth/login");
+    try {
+      await resetPassword({ email, new_password: data.newPassword }).unwrap();
+      router.push("/auth/login");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
+    }
   };
 
   return (
     <div className="w-full h-full flex items-center justify-center bg-white px-4 py-8 select-none">
       <div className="w-full max-w-md flex flex-col items-center">
-        {/* Title Heading */}
         <h1 className="text-4xl font-bold text-gray-900 tracking-tight text-center mb-12">
           Change Password
         </h1>
 
-        {/* Form Layout Container */}
         <form onSubmit={handleSubmit} className="w-full space-y-6">
-          {/* New Password Input */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-2 tracking-wide">
               New Password
@@ -58,8 +67,9 @@ export default function ChangePassword() {
                 name="newPassword"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className={`w-full pl-11 pr-11 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm placeholder-gray-300 shadow-sm transition-all
-                  ${error ? "border-red-500" : "border-gray-200"}`}
+                className={`w-full pl-11 pr-11 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm placeholder-gray-300 shadow-sm transition-all ${
+                  error ? "border-red-500" : "border-gray-200"
+                }`}
                 required
               />
               <button
@@ -72,7 +82,6 @@ export default function ChangePassword() {
             </div>
           </div>
 
-          {/* Confirm New Password Input */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-2 tracking-wide">
               Confirm New Password
@@ -85,8 +94,9 @@ export default function ChangePassword() {
                 name="confirmNewPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Password"
-                className={`w-full pl-11 pr-11 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm placeholder-gray-300 shadow-sm transition-all
-                  ${error ? "border-red-500" : "border-gray-200"}`}
+                className={`w-full pl-11 pr-11 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm placeholder-gray-300 shadow-sm transition-all ${
+                  error ? "border-red-500" : "border-gray-200"
+                }`}
                 required
               />
               <button
@@ -99,19 +109,18 @@ export default function ChangePassword() {
             </div>
           </div>
 
-          {/* Inline Validation Display */}
           {error && (
             <p className="text-red-500 text-xs font-medium text-center">
               {error}
             </p>
           )}
 
-          {/* Core Action Submit Button */}
           <button
             type="submit"
-            className="w-full hover:cursor-pointer bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-medium py-3.5 rounded-lg transition-all duration-200 shadow-sm shadow-red-100 active:scale-[0.99] text-sm tracking-wide mt-4"
+            disabled={isLoading}
+            className="w-full hover:cursor-pointer disabled:opacity-60 bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-medium py-3.5 rounded-lg transition-all duration-200 shadow-sm shadow-red-100 active:scale-[0.99] text-sm tracking-wide mt-4"
           >
-            Confirm
+            {isLoading ? "Saving..." : "Confirm"}
           </button>
         </form>
       </div>

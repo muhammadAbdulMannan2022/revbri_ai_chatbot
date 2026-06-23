@@ -1,20 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState, Suspense } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  Suspense,
+  type KeyboardEvent,
+  type ClipboardEvent,
+  type FormEvent,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BackButton from "@/lib/BackButton";
+import { useVerifyOtpMutation, useResendOtpMutation } from "@/lib/authApi";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 function OTPForm() {
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const email = searchParams.get("email") || "";
   const fromFlow = searchParams.get("from") || "";
 
-  // Auto focus first input on mount
+  const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
+  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
+
   useEffect(() => {
     inputsRef.current[0]?.focus();
   }, []);
@@ -26,28 +40,25 @@ function OTPForm() {
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
     setError("");
+    setMessage("");
 
     if (value && index < 3) {
       inputsRef.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number,
-  ) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = (e: ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData
       .getData("text")
       .replace(/\D/g, "")
       .slice(0, 4);
-
     if (!pasted) return;
 
     const newOtp = pasted.split("");
@@ -55,11 +66,14 @@ function OTPForm() {
 
     setOtp(newOtp);
     setError("");
+    setMessage("");
     inputsRef.current[Math.min(pasted.length - 1, 3)]?.focus();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError("");
+    setMessage("");
 
     if (otp.some((d) => !d)) {
       setError("Please enter the complete verification code.");
@@ -67,12 +81,30 @@ function OTPForm() {
     }
 
     const code = otp.join("");
-    console.log("Submitted OTP:", code);
 
-    if (fromFlow === "forgot") {
-      router.push("/auth/changepassword");
-    } else {
-      router.push("/auth/login");
+    try {
+      await verifyOtp({ email, otp: code }).unwrap();
+      if (fromFlow === "forgot") {
+        router.push(`/auth/changepassword?email=${encodeURIComponent(email)}`);
+      } else if (fromFlow === "login") {
+        router.push("/dashboard");
+      } else {
+        router.push("/auth/login");
+      }
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
+    }
+  };
+
+  const handleResend = async () => {
+    setError("");
+    setMessage("");
+
+    try {
+      await resendOtp({ email }).unwrap();
+      setMessage("A new OTP has been sent to your email.");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     }
   };
 
@@ -82,7 +114,6 @@ function OTPForm() {
         <BackButton />
       </div>
       <div className="max-w-120 w-full text-center flex flex-col items-center">
-        {/* Header Section */}
         <h1 className="text-3xl font-semibold text-gray-900 tracking-wide mb-5">
           Verification
         </h1>
@@ -96,7 +127,6 @@ function OTPForm() {
           </p>
         </div>
 
-        {/* Form Section */}
         <form
           onSubmit={handleSubmit}
           className="w-full flex flex-col items-center"
@@ -105,7 +135,6 @@ function OTPForm() {
             Enter verification code
           </h2>
 
-          {/* Circular OTP Inputs */}
           <div className="flex justify-center gap-4 mb-5">
             {otp.map((digit, idx) => (
               <input
@@ -121,43 +150,42 @@ function OTPForm() {
                 onKeyDown={(e) => handleKeyDown(e, idx)}
                 onPaste={handlePaste}
                 placeholder="*"
-                className={`w-14 h-14 sm:w-16 sm:h-16 text-xl font-bold text-center rounded-full
-                  bg-white border shadow-[0_4px_12px_rgba(0,0,0,0.04)] outline-none transition-all
-                  placeholder-gray-400 focus:ring-2 focus:ring-red-300
-                  ${
-                    digit
-                      ? "border-red-400 text-gray-700"
-                      : error
-                        ? "border-red-500 text-red-500"
-                        : "border-gray-100 text-gray-400"
-                  }`}
+                className={`w-14 h-14 sm:w-16 sm:h-16 text-xl font-bold text-center rounded-full bg-white border shadow-[0_4px_12px_rgba(0,0,0,0.04)] outline-none transition-all placeholder-gray-400 focus:ring-2 focus:ring-red-300 ${
+                  digit
+                    ? "border-red-400 text-gray-700"
+                    : error
+                      ? "border-red-500 text-red-500"
+                      : "border-gray-100 text-gray-400"
+                }`}
               />
             ))}
           </div>
 
-          {/* Error Message Layout */}
           {error && (
             <p className="text-red-500 text-xs font-medium mb-4">{error}</p>
           )}
+          {message && (
+            <p className="text-green-600 text-xs font-medium mb-4">{message}</p>
+          )}
 
-          {/* Resend Action Link */}
           <p className="text-gray-400 text-xs sm:text-sm mb-12 font-medium">
             if you didn&apos;t receive a code!{" "}
             <button
               type="button"
+              disabled={isResending}
+              onClick={handleResend}
               className="text-[#FF6F6F] hover:underline font-medium ml-0.5 hover:cursor-pointer"
             >
-              Click Here..
+              {isResending ? "Resending..." : "Click Here.."}
             </button>
           </p>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            disabled={otp.some((d) => !d)}
+            disabled={otp.some((d) => !d) || isLoading}
             className="w-full hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 max-w-85 bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-medium py-3.5 rounded-lg transition-all duration-200 active:scale-[0.99] shadow-sm text-sm tracking-wide"
           >
-            Confirm
+            {isLoading ? "Verifying..." : "Confirm"}
           </button>
         </form>
       </div>
@@ -165,7 +193,6 @@ function OTPForm() {
   );
 }
 
-// Wrapped in Suspense to protect Next.js build-time dynamic parameter check
 export default function OTPVerification() {
   return (
     <Suspense

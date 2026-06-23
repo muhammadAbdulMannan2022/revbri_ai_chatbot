@@ -1,32 +1,57 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BackButton from "@/lib/BackButton";
+import { useLoginMutation } from "@/lib/authApi";
+import { useAppDispatch } from "@/lib/hooks";
+import { setEmail } from "@/lib/authSlice";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 export default function SigninForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [login, { isLoading }] = useLoginMutation();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+
   interface SigninData {
     email: string;
     password: string;
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError("");
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(
       formData.entries(),
     ) as unknown as SigninData;
 
-    console.log("Type-safe data:", data.email, data.password);
-    router.push(
-      `/auth/verifyOtp?email=${encodeURIComponent(data.email)}&from=login`,
-    );
-    return;
+    try {
+      const response = await login({
+        email: data.email,
+        password: data.password,
+        role_type: "normal",
+      }).unwrap();
+
+      const accessToken = response?.data?.access;
+      const refreshToken = response?.data?.refresh;
+      if (accessToken) {
+        localStorage.setItem("access_token", accessToken);
+      }
+      if (refreshToken) {
+        localStorage.setItem("refresh_token", refreshToken);
+      }
+
+      dispatch(setEmail(data.email));
+      router.push("/dashboard");
+    } catch (error: unknown) {
+      setFormError(getErrorMessage(error));
+    }
   };
 
   return (
@@ -42,14 +67,19 @@ export default function SigninForm() {
           </p>
         </div>
 
-        {/* The name attributes on these inputs match our SignupData interface */}
+        {formError && (
+          <div className="mb-6 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {formError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="w-full space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Email
             </label>
             <input
-              name="email" // <-- Crucial for FormData
+              name="email"
               type="email"
               placeholder="user@mail.com"
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -65,7 +95,7 @@ export default function SigninForm() {
                 <Lock size={18} />
               </span>
               <input
-                name="password" // <-- Crucial for FormData
+                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 className="w-full pl-11 pr-11 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -79,7 +109,7 @@ export default function SigninForm() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <p className="text-sm text-right text-[#FF6F6F] mt-1  hover:text-[#ff5959] transition block">
+            <p className="text-sm text-right text-[#FF6F6F] mt-1 hover:text-[#ff5959] transition block">
               <Link href="/auth/forgotpassword" className="mt-2 inline">
                 forgot password?
               </Link>
@@ -88,24 +118,23 @@ export default function SigninForm() {
 
           <button
             type="submit"
-            className="w-full hover:cursor-pointer bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-semibold py-3.5 rounded-xl transition"
+            disabled={isLoading}
+            className="w-full hover:cursor-pointer disabled:opacity-60 bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-semibold py-3.5 rounded-xl transition"
           >
-            Sign in
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-        {/* Divider */}
+
         <div className="w-full flex items-center justify-center my-6 text-xs text-gray-400 font-medium tracking-wide">
           <span className="px-2">
             ................Or Sign in with................
           </span>
         </div>
 
-        {/* Google & Footer omitted for brevity */}
         <button
           type="button"
           className="w-full border hover:cursor-pointer border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl flex items-center justify-center gap-2.5 transition active:scale-[0.99] shadow-sm"
         >
-          {/* SVG Google Icon */}
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
@@ -127,9 +156,8 @@ export default function SigninForm() {
           <span className="text-sm font-semibold text-gray-600">Google</span>
         </button>
 
-        {/* Login redirect */}
         <p className="mt-6 text-sm text-gray-600 font-medium">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/auth"
             className="ml-1 px-3 py-1 border border-red-200 rounded text-[#FF6F6F] text-xs font-semibold hover:bg-red-50 transition"

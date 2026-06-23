@@ -4,11 +4,18 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Lock, User, Mail, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useRegisterMutation } from "@/lib/authApi";
+import { useAppDispatch } from "@/lib/hooks";
+import { setEmail } from "@/lib/authSlice";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [register, { isLoading }] = useRegisterMutation();
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   interface SignupData {
     name: string;
@@ -17,8 +24,9 @@ export default function SignupForm() {
     confirmPassword: string;
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError("");
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(
@@ -26,24 +34,31 @@ export default function SignupForm() {
     ) as unknown as SignupData;
 
     if (data.password !== data.confirmPassword) {
-      alert("Passwords do not match!");
+      setFormError("Passwords do not match!");
       return;
     }
 
-    console.log("Type-safe signup data:", data.name, data.email);
-    
-    router.push(
-      `/auth/verifyOtp?email=${encodeURIComponent(data.email)}&from=register`,
-    );
+    try {
+      await register({
+        full_name: data.name,
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+      dispatch(setEmail(data.email));
+      router.push(
+        `/auth/verifyOtp?email=${encodeURIComponent(data.email)}&from=register`,
+      );
+    } catch (error: unknown) {
+      setFormError(getErrorMessage(error) || "Registration failed");
+    }
   };
 
   return (
     <div className="w-full h-full flex items-center justify-center bg-white px-4 py-8 relative">
-      
       {/* Absolute Back Button Routing to Home Page (/) */}
       <div className="absolute top-4 left-4">
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition active:scale-95 shadow-sm"
           aria-label="Go to home page"
         >
@@ -60,9 +75,13 @@ export default function SignupForm() {
           </p>
         </div>
 
-        {/* Signup Form */}
+        {formError && (
+          <div className="mb-6 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {formError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="w-full space-y-5">
-          
           {/* 1. Full Name Entry Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -156,9 +175,10 @@ export default function SignupForm() {
           {/* Primary Submit Button */}
           <button
             type="submit"
-            className="w-full hover:cursor-pointer bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-semibold py-3.5 rounded-xl transition shadow-sm mt-2"
+            disabled={isLoading}
+            className="w-full hover:cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-semibold py-3.5 rounded-xl transition shadow-sm mt-2"
           >
-            Sign Up
+            {isLoading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
 
