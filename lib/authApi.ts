@@ -62,6 +62,16 @@ export interface Product {
   created_at: string;
 }
 
+export interface Banner {
+  id: number;
+  image: string;
+  expirey_date: string;
+  is_active: boolean;
+  active_count: number;
+  title: string;
+  created_at: string;
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -83,7 +93,7 @@ export const authApi = createApi({
     },
     // credentials: "include",
   }),
-  tagTypes: ["Product"],
+  tagTypes: ["Product", "Banner"],
   endpoints: (builder) => ({
     register: builder.mutation<
       void,
@@ -189,6 +199,36 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Product"],
     }),
+    getBanners: builder.query<Banner[] | any, void>({
+      query: () => ({
+        url: "/api/thumbnail-list/admin/",
+        method: "GET",
+      }),
+      providesTags: ["Banner"],
+    }),
+    createBanner: builder.mutation<Banner, FormData>({
+      query: (body) => ({
+        url: "/api/thumbnail-create/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Banner"],
+    }),
+    updateBanner: builder.mutation<Banner, { id: number; body: FormData }>({
+      query: ({ id, body }) => ({
+        url: `/api/thumbnail-detail/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Banner"],
+    }),
+    deleteBanner: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/thumbnail-detail/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Banner"],
+    }),
   }),
 });
 
@@ -206,4 +246,8 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useGetBannersQuery,
+  useCreateBannerMutation,
+  useUpdateBannerMutation,
+  useDeleteBannerMutation,
 } = authApi;
