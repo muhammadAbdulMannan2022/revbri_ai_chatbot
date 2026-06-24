@@ -4116,6 +4116,7 @@ __metadata:
     react-is: "npm:^19.2.6"
     react-redux: "npm:^8.1.0"
     recharts: "npm:^3.8.1"
+    swiper: "npm:^12.2.0"
     tailwindcss: "npm:^4"
     typescript: "npm:^5"
   languageName: unknown
@@ -4521,6 +4522,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 10c0/6c4032340701a9950865f7ae8ef38578d8d7053f5e10518076e6554a9381fa91bd9c6850193695c141f32b21f979c985db07265a758867bac95de05f7d8aeb39
+  languageName: node
+  linkType: hard
+
+"swiper@npm:^12.2.0":
+  version: 12.2.0
+  resolution: "swiper@npm:12.2.0"
+  checksum: 10c0/459c9621e170130c0a6874b05e24fefd0411529600a17b2d8afc4987dc2e803ab18d42983081b723423819d464568fdb541b6c3f517e558c60888c644dc4ead1
   languageName: node
   linkType: hard
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, ImageIcon } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Message } from "@/app/dashboard/page";
 
@@ -41,10 +41,28 @@ function MessageDisplay({
   setMessages: Function;
 }) {
   const searchParams = useSearchParams(); // ✅ not array
-  const assignmentId = searchParams.get("assignmentId");
-  const chatId = searchParams.get("chatId");
+  const [mounted, setMounted] = useState(false);
+  const [queryParams, setQueryParams] = useState<{
+    assignmentId: string | null;
+    chatId: string | null;
+  }>({
+    assignmentId: null,
+    chatId: null,
+  });
 
-  const isValidChat = assignmentId && chatId && messages.length > 0;
+  useEffect(() => {
+    setQueryParams({
+      assignmentId: searchParams.get("assignmentId"),
+      chatId: searchParams.get("chatId"),
+    });
+    setMounted(true);
+  }, [searchParams]);
+
+  const isValidChat =
+    mounted &&
+    !!queryParams.assignmentId &&
+    !!queryParams.chatId &&
+    messages.length > 0;
 
   const messagesRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +77,7 @@ function MessageDisplay({
 
   useEffect(() => {
     setMessages([]);
-  }, [assignmentId, chatId]);
+  }, [queryParams.assignmentId, queryParams.chatId]);
 
   return (
     <div className="flex-1 h-full w-full max-w-4xl mx-auto">

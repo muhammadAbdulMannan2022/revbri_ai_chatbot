@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import logo from "@/assets/main/logo.png";
+import { useGetProfileQuery } from "@/lib/authApi";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -43,10 +44,19 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const {
+    data: user,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+  } = useGetProfileQuery();
 
   const handleLogout = () => {
     setShowLogoutModal(false);
@@ -88,9 +98,15 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
             <div className="text-right leading-tight">
               <p className="text-[11px] font-bold text-[#151b26]">
-                Admin User
+                {(!isProfileLoading &&
+                  !isProfileError &&
+                  user?.data?.full_name) ??
+                  "Admin User"}
               </p>
-              <p className="text-[9px] text-[#6d7480]">admin@platform.com</p>
+              <p className="text-[9px] text-[#6d7480]">
+                {(!isProfileLoading && !isProfileError && user?.data?.email) ??
+                  "admin@platform.com"}
+              </p>
             </div>
 
             <button

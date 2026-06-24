@@ -114,7 +114,7 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-    updateProfile: builder.mutation<ProfileResponse, Partial<ProfileData>>({
+    updateProfile: builder.mutation<ProfileResponse, FormData>({
       query: (body) => ({
         url: "/api/profile/",
         method: "PATCH",
@@ -152,10 +152,7 @@ export const authApi = createApi({
         body,
       }),
     }),
-    resetPassword: builder.mutation<
-      void,
-      { email: string; new_password: string }
-    >({
+    resetPassword: builder.mutation<void, FormData>({
       query: (body) => ({
         url: "/api/reset-password/",
         method: "POST",
@@ -229,6 +226,19 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Banner"],
     }),
+    getPosters: builder.query<Banner[] | any, void>({
+      query: () => ({
+        url: "/api/thumbnail-list/user/",
+        method: "GET",
+      }),
+      providesTags: ["Banner"],
+    }),
+    getUsers: builder.query<any, void>({
+      query: () => ({
+        url: "/api/admin-user-list/",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -250,4 +260,6 @@ export const {
   useCreateBannerMutation,
   useUpdateBannerMutation,
   useDeleteBannerMutation,
+  useGetPostersQuery,
+  useGetUsersQuery,
 } = authApi;

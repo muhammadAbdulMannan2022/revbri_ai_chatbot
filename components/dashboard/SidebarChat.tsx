@@ -48,7 +48,7 @@ export default function SidebarChatList() {
   };
 
   return (
-    <div className="w-full bg-white flex flex-col">
+    <div suppressHydrationWarning className="w-full bg-white flex flex-col">
       {/* New Chat Button */}
       <div className="bg-white sticky top-0 z-10">
         <button

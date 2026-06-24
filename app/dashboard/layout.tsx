@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Header } from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
+import { useGetUsersQuery } from "@/lib/authApi";
 
 // Main layout component with Outlet (for routing, e.g., different views in main area)
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {

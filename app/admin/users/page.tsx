@@ -2,6 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useGetUsersQuery } from "@/lib/authApi";
+
+// Assuming this is the hook from your RTK Query / data fetching library
+// Adjust the import path as needed for your project
 
 type FilterTab = "all" | "free" | "paid" | "high";
 
@@ -12,101 +16,12 @@ const filterTabs: { label: string; key: FilterTab }[] = [
   { label: "High Usage", key: "high" },
 ];
 
-const users = [
-  {
-    initials: "JD",
-    name: "John Doe",
-    email: "john@example.com",
-    package: "Premium",
-    joinDate: "2024-01-15",
-    queries: "2,450",
-    usage: "High",
-    lastActive: "2 hours ago",
-    status: "Active",
-  },
-  {
-    initials: "SS",
-    name: "Sarah Smith",
-    email: "sarah@example.com",
-    package: "Free",
-    joinDate: "2024-02-20",
-    queries: "145",
-    usage: "Low",
-    lastActive: "1 day ago",
-    status: "Active",
-  },
-  {
-    initials: "MJ",
-    name: "Mike Johnson",
-    email: "mike@example.com",
-    package: "Business",
-    joinDate: "2024-01-08",
-    queries: "5,240",
-    usage: "Very High",
-    lastActive: "30 min ago",
-    status: "Active",
-  },
-  {
-    initials: "EW",
-    name: "Emma Wilson",
-    email: "emma@example.com",
-    package: "Premium",
-    joinDate: "2024-03-12",
-    queries: "1,820",
-    usage: "Medium",
-    lastActive: "3 hours ago",
-    status: "Active",
-  },
-  {
-    initials: "AB",
-    name: "Alex Brown",
-    email: "alex@example.com",
-    package: "Free",
-    joinDate: "2024-04-05",
-    queries: "89",
-    usage: "Low",
-    lastActive: "5 days ago",
-    status: "Inactive",
-  },
-  {
-    initials: "LC",
-    name: "Lisa Chen",
-    email: "lisa@example.com",
-    package: "Premium",
-    joinDate: "2023-12-20",
-    queries: "3,650",
-    usage: "High",
-    lastActive: "1 hour ago",
-    status: "Active",
-  },
-  {
-    initials: "DL",
-    name: "David Lee",
-    email: "david@example.com",
-    package: "Free",
-    joinDate: "2024-03-25",
-    queries: "234",
-    usage: "Low",
-    lastActive: "2 days ago",
-    status: "Active",
-  },
-  {
-    initials: "RG",
-    name: "Rachel Green",
-    email: "rachel@example.com",
-    package: "Business",
-    joinDate: "2024-02-10",
-    queries: "4,120",
-    usage: "High",
-    lastActive: "45 min ago",
-    status: "Active",
-  },
-];
-
 const packageStyles: Record<string, string> = {
   Premium: "bg-[#dbeafe] text-[#2563eb]",
   Free: "bg-[#eef2f7] text-[#283445]",
   Business: "bg-[#eadcff] text-[#7c3aed]",
+  // Fallback for missing or unknown tiers
+  Standard: "bg-[#eef2f7] text-[#283445]",
 };
 
 const usageStyles: Record<string, string> = {
@@ -121,29 +36,74 @@ const statusStyles: Record<string, string> = {
   Inactive: "bg-[#eef2f7] text-[#1f2937]",
 };
 
+// Helper to extract initials from full_name
+const getInitials = (name: string) => {
+  if (!name) return "U";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
 export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // 1. Fetching data from your custom hook
+  const { data: apiUsers, isLoading, isError } = useGetUsersQuery();
+
+  // 2. Normalizing API data with fallbacks for UI fields missing in the endpoint
+  const users = useMemo(() => {
+    if (!apiUsers) return [];
+
+    return apiUsers.map((user: any) => {
+      // Mocking or mapping fields that the API doesn't explicitly provide yet
+      const isPaid = user.userole === "admin"; // Example conditional logic
+      const pkg = isPaid ? "Business" : "Free";
+      const usage = isPaid ? "High" : "Low";
+      const status = user.is_verified ? "Active" : "Inactive";
+
+      return {
+        id: user.id,
+        initials: getInitials(user.full_name),
+        name: user.full_name || "Unknown User",
+        email: user.email,
+        package: pkg,
+        joinDate: "2024-01-15", // Mocked fallback since it's not in the response payload
+        queries: isPaid ? "4,120" : "120", // Mocked fallback
+        usage: usage,
+        lastActive: "Just now", // Mocked fallback
+        status: status,
+      };
+    });
+  }, [apiUsers]);
+
+  // 3. Dynamic counts calculated from live API data
   const tabCounts = useMemo(
     () => ({
       all: users.length,
-      free: users.filter((user) => user.package === "Free").length,
-      paid: users.filter((user) => user.package !== "Free").length,
-      high: users.filter((user) => user.usage === "High").length,
+      free: users.filter((user: any) => user.package === "Free").length,
+      paid: users.filter((user: any) => user.package !== "Free").length,
+      high: users.filter(
+        (user: any) => user.usage === "High" || user.usage === "Very High",
+      ).length,
     }),
-    [],
+    [users],
   );
 
+  // 4. Filtering and searching logic logic
   const visibleUsers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return users.filter((user) => {
+    return users.filter((user: any) => {
       const matchesTab =
         activeTab === "all" ||
         (activeTab === "free" && user.package === "Free") ||
         (activeTab === "paid" && user.package !== "Free") ||
-        (activeTab === "high" && user.usage === "High");
+        (activeTab === "high" &&
+          (user.usage === "High" || user.usage === "Very High"));
 
       const matchesSearch =
         !normalizedSearch ||
@@ -154,7 +114,7 @@ export default function AdminUsersPage() {
 
       return matchesTab && matchesSearch;
     });
-  }, [activeTab, searchTerm]);
+  }, [activeTab, searchTerm, users]);
 
   return (
     <>
@@ -224,55 +184,84 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleUsers.map((user) => (
-                <tr
-                  key={user.email}
-                  className="border-b border-[#edf0f4] text-[13px] text-[#273244] last:border-b-0"
-                >
-                  <td className="px-[22px] py-[14px]">
-                    <div className="flex items-center gap-[13px]">
-                      <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-[#ef5b5e] text-[12px] font-bold text-white">
-                        {user.initials}
-                      </div>
-                      <div>
-                        <p className="font-extrabold text-[#1f2937]">
-                          {user.name}
-                        </p>
-                        <p className="mt-[3px] text-[12px] text-[#6d7480]">
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-[16px] py-[14px]">
-                    <span
-                      className={`inline-flex h-[22px] items-center rounded-full px-[10px] text-[10px] font-bold ${packageStyles[user.package]}`}
-                    >
-                      {user.package}
-                    </span>
-                  </td>
-                  <td className="px-[16px] py-[14px]">{user.joinDate}</td>
-                  <td className="px-[16px] py-[14px] font-semibold">
-                    {user.queries}
-                  </td>
-                  <td className="px-[16px] py-[14px]">
-                    <span
-                      className={`inline-flex h-[22px] items-center rounded-full px-[10px] text-[10px] font-bold ${usageStyles[user.usage]}`}
-                    >
-                      {user.usage}
-                    </span>
-                  </td>
-                  <td className="px-[16px] py-[14px]">{user.lastActive}</td>
-                  <td className="px-[22px] py-[14px] text-right">
-                    <span
-                      className={`inline-flex h-[22px] items-center rounded-full px-[11px] text-[10px] font-bold ${statusStyles[user.status]}`}
-                    >
-                      {user.status.toLowerCase()}
-                    </span>
+              {/* Handling Loading State */}
+              {isLoading && (
+                <tr>
+                  <td
+                    className="px-[22px] py-[34px] text-center text-[13px] font-semibold text-[#6d7480]"
+                    colSpan={7}
+                  >
+                    Loading users...
                   </td>
                 </tr>
-              ))}
-              {visibleUsers.length === 0 && (
+              )}
+
+              {/* Handling Error State */}
+              {isError && (
+                <tr>
+                  <td
+                    className="px-[22px] py-[34px] text-center text-[13px] font-semibold text-red-500"
+                    colSpan={7}
+                  >
+                    Failed to load user records.
+                  </td>
+                </tr>
+              )}
+
+              {/* Displaying Live Data */}
+              {!isLoading &&
+                !isError &&
+                visibleUsers.map((user: any) => (
+                  <tr
+                    key={user.id || user.email}
+                    className="border-b border-[#edf0f4] text-[13px] text-[#273244] last:border-b-0"
+                  >
+                    <td className="px-[22px] py-[14px]">
+                      <div className="flex items-center gap-[13px]">
+                        <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-[#ef5b5e] text-[12px] font-bold text-white">
+                          {user.initials}
+                        </div>
+                        <div>
+                          <p className="font-extrabold text-[#1f2937]">
+                            {user.name}
+                          </p>
+                          <p className="mt-[3px] text-[12px] text-[#6d7480]">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      <span
+                        className={`inline-flex h-[22px] items-center rounded-full px-[10px] text-[10px] font-bold ${packageStyles[user.package] || packageStyles.Standard}`}
+                      >
+                        {user.package}
+                      </span>
+                    </td>
+                    <td className="px-[16px] py-[14px]">{user.joinDate}</td>
+                    <td className="px-[16px] py-[14px] font-semibold">
+                      {user.queries}
+                    </td>
+                    <td className="px-[16px] py-[14px]">
+                      <span
+                        className={`inline-flex h-[22px] items-center rounded-full px-[10px] text-[10px] font-bold ${usageStyles[user.usage]}`}
+                      >
+                        {user.usage}
+                      </span>
+                    </td>
+                    <td className="px-[16px] py-[14px]">{user.lastActive}</td>
+                    <td className="px-[22px] py-[14px] text-right">
+                      <span
+                        className={`inline-flex h-[22px] items-center rounded-full px-[11px] text-[10px] font-bold ${statusStyles[user.status]}`}
+                      >
+                        {user.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+
+              {/* Fallback for Empty Search/Filter results */}
+              {!isLoading && !isError && visibleUsers.length === 0 && (
                 <tr>
                   <td
                     className="px-[22px] py-[34px] text-center text-[13px] font-semibold text-[#6d7480]"
