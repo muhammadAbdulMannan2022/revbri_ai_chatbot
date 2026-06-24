@@ -93,7 +93,7 @@ export const authApi = createApi({
     },
     // credentials: "include",
   }),
-  tagTypes: ["Product", "Banner"],
+  tagTypes: ["Product", "Banner", "Email", "Notification"],
   endpoints: (builder) => ({
     register: builder.mutation<
       void,
@@ -246,6 +246,92 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getEmails: builder.query<any, void>({
+      query: () => ({
+        url: "/api/email-list/",
+        method: "GET",
+      }),
+    }),
+    createEmail: builder.mutation<
+      any,
+      {
+        set_date: string;
+        set_time: string;
+        select_audience: string;
+        is_repeated: boolean;
+        repeated_type: string;
+        describe_email: string;
+        is_active: boolean;
+      }
+    >({
+      query: (body) => ({
+        url: "/api/email-create/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Email"],
+    }),
+    getEmailDetail: builder.query<any, number>({
+      query: (id) => ({
+        url: `/api/email-detail/${id}/`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Email", id }],
+    }),
+    updateEmail: builder.mutation<any, { id: number; body: Partial<any> }>({
+      query: ({ id, body }) => ({
+        url: `/api/email-detail/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Email"],
+    }),
+    deleteEmail: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/email-detail/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Email"],
+    }),
+    getAdminNotificationsToUsers: builder.query<any, void>({
+      query: () => ({
+        url: "/api/admin-notification-list/",
+        method: "GET",
+      }),
+    }),
+    createNotification: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "/api/notification-create/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Notification"],
+    }),
+    getNotificationDetail: builder.query<any, number>({
+      query: (id) => ({
+        url: `/api/notification-detail/${id}/`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Notification", id }],
+    }),
+    updateNotification: builder.mutation<
+      any,
+      { id: number; body: Partial<any> }
+    >({
+      query: ({ id, body }) => ({
+        url: `/api/notification-detail/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Notification"],
+    }),
+    deleteNotification: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/notification-detail/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Notification"],
+    }),
   }),
 });
 
@@ -271,4 +357,14 @@ export const {
   useGetUsersQuery,
   // chats
   useGetChatsQuery,
+  useGetEmailsQuery,
+  useCreateEmailMutation,
+  useGetEmailDetailQuery,
+  useUpdateEmailMutation,
+  useDeleteEmailMutation,
+  useGetAdminNotificationsToUsersQuery,
+  useCreateNotificationMutation,
+  useGetNotificationDetailQuery,
+  useUpdateNotificationMutation,
+  useDeleteNotificationMutation,
 } = authApi;
