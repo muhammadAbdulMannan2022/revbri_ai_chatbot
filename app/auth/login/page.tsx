@@ -35,7 +35,6 @@ export default function SigninForm() {
       const response = await login({
         email: data.email,
         password: data.password,
-        role_type: "normal",
       }).unwrap();
 
       const accessToken = response?.data?.access;
@@ -48,7 +47,13 @@ export default function SigninForm() {
       }
 
       dispatch(setEmail(data.email));
-      router.push("/dashboard");
+      const userRole =
+        response?.data?.userole ?? response?.data?.role ?? "normal";
+      if (userRole === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: unknown) {
       setFormError(getErrorMessage(error));
     }

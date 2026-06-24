@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useResetPasswordMutation } from "@/lib/authApi";
 import { getErrorMessage } from "@/lib/errorUtils";
 
-export default function ChangePassword() {
+function ChangePasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -125,5 +125,17 @@ export default function ChangePassword() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ChangePassword() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FF6F6F] border-t-transparent" />
+      </div>
+    }>
+      <ChangePasswordContent />
+    </Suspense>
   );
 }

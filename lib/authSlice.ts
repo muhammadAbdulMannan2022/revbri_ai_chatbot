@@ -62,8 +62,8 @@ const authSlice = createSlice({
         state.error = null;
         const accessToken =
           action.payload?.data?.access ||
-          action.payload?.access ||
-          action.payload?.token;
+          (action.payload?.access as string | undefined) ||
+          (action.payload?.token as string | undefined);
         if (accessToken) {
           state.token = accessToken;
         }
