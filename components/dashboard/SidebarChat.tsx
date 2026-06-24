@@ -1,25 +1,19 @@
 "use client";
 
+import { useGetChatsQuery } from "@/lib/authApi";
 import { MoreVertical, SquarePen, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 type Chat = {
   id: number;
-  title: string;
+  name: string;
 };
 
-const initialChats: Chat[] = [
-  { id: 1, title: "The Awakening" },
-  ...Array.from({ length: 18 }, (_, i) => ({
-    id: i + 2,
-    title: "The Forgotten Realm",
-  })),
-];
-
 export default function SidebarChatList() {
-  const [chats, setChats] = useState<Chat[]>(initialChats);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [activeId, setActiveId] = useState<number>(1);
   const [actionOpenId, setActionOpenId] = useState<number | null>(null);
+  const { data: chatsData, isLoading: isChatsLoading } = useGetChatsQuery();
 
   // Close the action dropdown if the user clicks anywhere else on the screen
   useEffect(() => {
@@ -27,13 +21,18 @@ export default function SidebarChatList() {
     window.addEventListener("click", handleOutsideClick);
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
+  useEffect(() => {
+    if (!isChatsLoading && chatsData) {
+      setChats(chatsData);
+    }
+  }, [chatsData]);
 
   // Creates a new chat, puts it at the top, and focuses it
   const handleCreateNewChat = () => {
     const newChatId = Date.now(); // Guarantees a unique ID
     const newChat: Chat = {
       id: newChatId,
-      title: "New Chat Session",
+      name: "New Chat Session",
     };
 
     setChats((prev) => [newChat, ...prev]);
@@ -67,54 +66,61 @@ export default function SidebarChatList() {
 
       {/* Chat Items */}
       <div className="flex-1 space-y-1">
-        {chats.map((chat) => (
-          <div
-            key={chat.id}
-            onClick={() => setActiveId(chat.id)}
-            className={`group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm transition-colors relative ${
-              activeId === chat.id
-                ? "bg-[#ff5a5a] text-white"
-                : "text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            <span className="truncate pr-2">{chat.title}</span>
+        {chats.length > 0 ? (
+          chats.map((chat) => (
+            <div
+              key={chat.id}
+              onClick={() => setActiveId(chat.id)}
+              className={`group flex items-center border border-gray-50 justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm transition-colors relative ${
+                activeId === chat.id
+                  ? "bg-[#ff5a5a] text-white"
+                  : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <span className="truncate pr-2">{chat.name}</span>
 
-            <div className="relative flex items-center">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActionOpenId(actionOpenId === chat.id ? null : chat.id);
-                }}
-                className={`p-1 rounded transition-opacity hover:cursor-pointer ${
-                  actionOpenId === chat.id
-                    ? "opacity-100 bg-black/10"
-                    : "opacity-0 group-hover:opacity-100 hover:bg-black/10"
-                }`}
-              >
-                <MoreVertical size={16} />
-              </button>
+              <div className="relative flex items-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActionOpenId(actionOpenId === chat.id ? null : chat.id);
+                  }}
+                  className={`p-1 rounded transition-opacity hover:cursor-pointer ${
+                    actionOpenId === chat.id
+                      ? "opacity-100 bg-black/10"
+                      : "opacity-0 group-hover:opacity-100 hover:bg-black/10"
+                  }`}
+                >
+                  <MoreVertical size={16} />
+                </button>
 
-              {/* Action Dropdown Menu */}
-              {actionOpenId === chat.id && (
-                <>
-                  <div
-                    onClick={(e) => e.stopPropagation()} // Prevents switching active chat when clicking inside menu
-                    className="absolute right-0 top-[110%] mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-30 text-gray-700"
-                  >
-                    <button
-                      onClick={(e) => handleDelete(e, chat.id)}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                {/* Action Dropdown Menu */}
+                {actionOpenId === chat.id && (
+                  <>
+                    <div
+                      onClick={(e) => e.stopPropagation()} // Prevents switching active chat when clicking inside menu
+                      className="absolute right-0 top-[110%] mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-30 text-gray-700"
                     >
-                      <Trash2 size={14} />
-                      <span>Delete chat</span>
-                    </button>
-                  </div>
-                  <span className="w-4 h-5 bg-white absolute rotate-45 top-[110%] right-2 border border-gray-300" />
-                </>
-              )}
+                      <button
+                        onClick={(e) => handleDelete(e, chat.id)}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                        <span>Delete chat</span>
+                      </button>
+                    </div>
+                    <span className="w-4 h-5 bg-white absolute rotate-45 top-[110%] right-2 border border-gray-300" />
+                  </>
+                )}
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">
+            <p>No chats available.</p>
+            <p className="mt-1">Click "New chat" to start a conversation!</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export interface Banner {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://0732-103-186-20-8.ngrok-free.app",
+    baseUrl: "https://39c4-103-186-20-8.ngrok-free.app",
     prepareHeaders: (headers, { getState }) => {
       // 1. Bypass the ngrok warning page
       headers.set("ngrok-skip-browser-warning", "true");
@@ -239,6 +239,13 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    // get all chats
+    getChats: builder.query<any, void>({
+      query: () => ({
+        url: "/api/chat-rooms-list/",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -262,4 +269,6 @@ export const {
   useDeleteBannerMutation,
   useGetPostersQuery,
   useGetUsersQuery,
+  // chats
+  useGetChatsQuery,
 } = authApi;
