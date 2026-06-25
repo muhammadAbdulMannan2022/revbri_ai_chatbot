@@ -3,6 +3,7 @@
 import { useGetChatsQuery } from "@/lib/authApi";
 import { MoreVertical, SquarePen, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Chat = {
   id: number;
@@ -10,40 +11,47 @@ type Chat = {
 };
 
 export default function SidebarChatList() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeId = searchParams.get("room")
+    ? Number(searchParams.get("room"))
+    : null;
+
   const [chats, setChats] = useState<Chat[]>([]);
-  const [activeId, setActiveId] = useState<number>(1);
   const [actionOpenId, setActionOpenId] = useState<number | null>(null);
   const { data: chatsData, isLoading: isChatsLoading } = useGetChatsQuery();
 
-  // Close the action dropdown if the user clicks anywhere else on the screen
+  // Close action dropdown on outside click
   useEffect(() => {
     const handleOutsideClick = () => setActionOpenId(null);
     window.addEventListener("click", handleOutsideClick);
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
+
   useEffect(() => {
     if (!isChatsLoading && chatsData) {
-      setChats(chatsData);
+      const raw = Array.isArray(chatsData)
+        ? chatsData
+        : (chatsData as any)?.results ?? [];
+      setChats(raw);
     }
-  }, [chatsData]);
+  }, [chatsData, isChatsLoading]);
 
-  // Creates a new chat, puts it at the top, and focuses it
+  const handleSelectChat = (id: number) => {
+    setActionOpenId(null);
+    router.push(`/dashboard?room=${id}`);
+  };
+
   const handleCreateNewChat = () => {
-    const newChatId = Date.now(); // Guarantees a unique ID
-    const newChat: Chat = {
-      id: newChatId,
-      name: "New Chat Session",
-    };
-
-    setChats((prev) => [newChat, ...prev]);
-    setActiveId(newChatId);
-    setActionOpenId(null); // Clear any open action menus
+    setActionOpenId(null);
+    router.push("/dashboard");
   };
 
   const handleDelete = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     setChats((prev) => prev.filter((c) => c.id !== id));
-    setActionOpenId(null); // Close the menu after deleting
+    setActionOpenId(null);
+    if (activeId === id) router.push("/dashboard");
   };
 
   return (
@@ -70,7 +78,7 @@ export default function SidebarChatList() {
           chats.map((chat) => (
             <div
               key={chat.id}
-              onClick={() => setActiveId(chat.id)}
+              onClick={() => handleSelectChat(chat.id)}
               className={`group flex items-center border border-gray-50 justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm transition-colors relative ${
                 activeId === chat.id
                   ? "bg-[#ff5a5a] text-white"
@@ -94,11 +102,10 @@ export default function SidebarChatList() {
                   <MoreVertical size={16} />
                 </button>
 
-                {/* Action Dropdown Menu */}
                 {actionOpenId === chat.id && (
                   <>
                     <div
-                      onClick={(e) => e.stopPropagation()} // Prevents switching active chat when clicking inside menu
+                      onClick={(e) => e.stopPropagation()}
                       className="absolute right-0 top-[110%] mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-30 text-gray-700"
                     >
                       <button
@@ -118,7 +125,7 @@ export default function SidebarChatList() {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">
             <p>No chats available.</p>
-            <p className="mt-1">Click "New chat" to start a conversation!</p>
+            <p className="mt-1">Click &quot;New chat&quot; to start a conversation!</p>
           </div>
         )}
       </div>

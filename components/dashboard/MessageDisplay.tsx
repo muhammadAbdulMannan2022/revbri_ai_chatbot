@@ -1,131 +1,233 @@
 "use client";
 
-import { FileText, ImageIcon } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import type { Message } from "@/app/dashboard/page";
+import { useRef, useEffect } from "react";
+import {
+  Bot,
+  ExternalLink,
+  Loader2,
+  MessageSquare,
+  ShoppingBag,
+} from "lucide-react";
+import type { ChatMessage, ChatProductResponse } from "@/lib/authApi";
 
-function getFilePreview(file: File) {
-  if (file.type.startsWith("image/")) {
-    return (
-      <img
-        src={URL.createObjectURL(file)}
-        alt={file.name}
-        className="max-w-full h-auto max-h-100 object-contain rounded border"
-      />
-    );
-  } else if (
-    file.type === "application/pdf" ||
-    file.type.includes("msword") ||
-    file.type.includes("wordprocessingml")
-  ) {
-    return (
-      <div className="w-20 h-20 flex items-center justify-center rounded border bg-white">
-        <FileText className="w-10 h-10 text-dashboardMain" />
+// ─── Type guard ───────────────────────────────────────────────────────────────
+function isProductResponse(v: unknown): v is ChatProductResponse {
+  return typeof v === "object" && v !== null && "results" in v;
+}
+
+// ─── Thinking bubble shown while AI is generating ────────────────────────────
+function ThinkingBubble() {
+  return (
+    <div className="flex justify-start">
+      <div className="flex items-end gap-2 max-w-[80%]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
+          <Bot size={14} className="text-white" strokeWidth={2} />
+        </div>
+        <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[#ef5b5e] [animation-delay:0ms]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[#ef5b5e] [animation-delay:150ms]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-[#ef5b5e] [animation-delay:300ms]" />
+          </div>
+        </div>
       </div>
-    );
-  } else {
+    </div>
+  );
+}
+
+// ─── Product card ─────────────────────────────────────────────────────────────
+function ProductCard({
+  product,
+}: {
+  product: ChatProductResponse["results"][number];
+}) {
+  return (
+    <a
+      href={product.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex flex-col overflow-hidden rounded-[12px] border border-[#edf0f4] bg-white shadow-sm transition hover:shadow-md hover:border-[#ef5b5e]/30"
+    >
+      {/* Image */}
+      <div className="relative h-[110px] w-full overflow-hidden bg-[#f8fafc]">
+        {product.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover transition group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <ShoppingBag size={28} className="text-[#cbd5e1]" />
+          </div>
+        )}
+        {product.price && (
+          <span className="absolute left-2 top-2 rounded-full bg-[#ef5b5e] px-2 py-0.5 text-[10px] font-bold text-white shadow">
+            ${product.price}
+          </span>
+        )}
+      </div>
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-1 p-3">
+        <p className="text-[12px] font-bold text-[#151b26] leading-tight line-clamp-1 group-hover:text-[#ef5b5e] transition">
+          {product.name}
+        </p>
+        <p className="text-[10px] text-[#94a3b8] line-clamp-2 leading-relaxed">
+          {product.description}
+        </p>
+        <div className="mt-auto flex items-center gap-1 pt-1">
+          <ExternalLink size={10} className="text-[#ef5b5e]" />
+          <span className="text-[10px] font-semibold text-[#ef5b5e]">View</span>
+        </div>
+      </div>
+    </a>
+  );
+}
+
+// ─── AI response bubble ───────────────────────────────────────────────────────
+function AIBubble({ response }: { response: string | ChatProductResponse }) {
+  const isThinking = response === "…";
+
+  if (isThinking) return <ThinkingBubble />;
+
+  if (isProductResponse(response)) {
+    const { query, results } = response;
     return (
-      <div className="w-20 h-20 flex items-center justify-center rounded border bg-white">
-        <ImageIcon className="w-10 h-10 text-dashboardMain" />
+      <div className="flex justify-start">
+        <div className="flex items-end gap-2 max-w-[90%] w-full">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
+            <Bot size={14} className="text-white" strokeWidth={2} />
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            {/* Query echo */}
+            <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-[13px] text-[#374151] shadow-sm">
+              {results.length === 0 ? (
+                <p>
+                  I searched for{" "}
+                  <span className="font-semibold text-[#ef5b5e]">
+                    &ldquo;{query}&rdquo;
+                  </span>{" "}
+                  but couldn&apos;t find any matching products. Try adjusting
+                  your query!
+                </p>
+              ) : (
+                <p>
+                  Here are{" "}
+                  <span className="font-semibold text-[#ef5b5e]">
+                    {results.length} product{results.length !== 1 ? "s" : ""}
+                  </span>{" "}
+                  matching{" "}
+                  <span className="font-semibold">&ldquo;{query}&rdquo;</span>:
+                </p>
+              )}
+            </div>
+            {/* Product grid */}
+            {results.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {results.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
+
+  // Plain text response
+  return (
+    <div className="flex justify-start">
+      <div className="flex items-end gap-2 max-w-[80%]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
+          <Bot size={14} className="text-white" strokeWidth={2} />
+        </div>
+        <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-[13px] leading-relaxed text-[#374151] shadow-sm whitespace-pre-wrap">
+          {response}
+        </div>
+      </div>
+    </div>
+  );
 }
 
+// ─── User bubble ──────────────────────────────────────────────────────────────
+function UserBubble({ text }: { text: string }) {
+  return (
+    <div className="flex justify-end">
+      <div className="max-w-[75%] rounded-2xl rounded-br-sm bg-gradient-to-br from-[#ef5b5e] to-[#ff7b6b] px-4 py-3 text-[13px] leading-relaxed text-white shadow-sm">
+        {text}
+      </div>
+    </div>
+  );
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+function EmptyState({ hasRoom }: { hasRoom: boolean }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 py-20">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ef5b5e]/10 to-[#ff8a70]/10">
+        <MessageSquare size={28} className="text-[#ef5b5e]" strokeWidth={1.5} />
+      </div>
+      <div className="text-center">
+        <h2 className="text-[18px] font-extrabold text-[#151b26]">
+          {hasRoom ? "Start the conversation!" : "Select a chat"}
+        </h2>
+        <p className="mt-1 text-[13px] text-[#94a3b8]">
+          {hasRoom
+            ? "Ask me anything or search for products."
+            : "Pick an existing chat or create a new one from the sidebar."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 function MessageDisplay({
   messages,
-  setMessages,
+  isLoading,
+  hasRoom,
+  isSending,
 }: {
-  messages: Message[];
-  setMessages: Function;
+  messages: ChatMessage[];
+  isLoading: boolean;
+  hasRoom: boolean;
+  isSending?: boolean;
 }) {
-  const searchParams = useSearchParams(); // ✅ not array
-  const [mounted, setMounted] = useState(false);
-  const [queryParams, setQueryParams] = useState<{
-    assignmentId: string | null;
-    chatId: string | null;
-  }>({
-    assignmentId: null,
-    chatId: null,
-  });
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setQueryParams({
-      assignmentId: searchParams.get("assignmentId"),
-      chatId: searchParams.get("chatId"),
-    });
-    setMounted(true);
-  }, [searchParams]);
-
-  const isValidChat =
-    mounted &&
-    !!queryParams.assignmentId &&
-    !!queryParams.chatId &&
-    messages.length > 0;
-
-  const messagesRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (messagesRef.current) {
-      messagesRef.current.scrollTo({
-        top: messagesRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    setMessages([]);
-  }, [queryParams.assignmentId, queryParams.chatId]);
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 size={28} className="animate-spin text-[#ef5b5e]" />
+      </div>
+    );
+  }
+
+  // Show empty state when there are no messages yet.
+  // We intentionally do NOT gate on hasRoom here — when a new chat is started
+  // (no room yet) the optimistic message should still appear immediately.
+  if (messages.length === 0) {
+    return <EmptyState hasRoom={hasRoom} />;
+  }
 
   return (
-    <div className="flex-1 h-full w-full max-w-4xl mx-auto">
-      {isValidChat ? (
-        <div
-          ref={messagesRef}
-          className="overflow-y-auto space-y-4 h-full scrollbar scrollbar-thumb-rounded scrollbar-thumb-dashboardMain scrollbar-track-gray-200"
-        >
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-md p-3 rounded-lg ${
-                  msg.sender === "user"
-                    ? "bg-dashboardMain text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
-              >
-                {msg.text && <p>{msg.text}</p>}
-
-                {msg.files && msg.files.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {msg.files.map((file: File, fidx: number) => (
-                      <div key={fidx} className="relative">
-                        {getFilePreview(file)}
-                        <p className="text-xs mt-1 truncate max-w-25">
-                          {file.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+    <div className="flex flex-col gap-4 h-full w-full max-w-4xl mx-auto px-4 pt-6 pb-4">
+      {messages.map((msg) => (
+        <div key={msg.id} className="flex flex-col gap-2">
+          {/* User message */}
+          <UserBubble text={msg.message} />
+          {/* AI response */}
+          <AIBubble response={msg.ai_response} />
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-end py-10 h-full">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-700">Hi, There!</h2>
-            <p className="text-gray-500 mt-2">Let’s start the chat now!!</p>
-          </div>
-        </div>
-      )}
+      ))}
+      {/* Anchor for auto-scroll */}
+      <div className=" md:border-[4rem] border-[#EFF2F6]" ref={bottomRef} />
     </div>
   );
 }

@@ -72,6 +72,31 @@ export interface Banner {
   created_at: string;
 }
 
+export interface ChatProduct {
+  id: number;
+  name: string;
+  description: string;
+  score: number | null;
+  image: string;
+  url: string;
+  price?: string;
+}
+
+export interface ChatProductResponse {
+  query: string;
+  results: ChatProduct[];
+}
+
+export interface ChatMessage {
+  id: number;
+  room: number;
+  sender: number;
+  message: string;
+  // ai_response is a plain string OR a product-search object
+  ai_response: string | ChatProductResponse;
+  created_at: string;
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -93,7 +118,7 @@ export const authApi = createApi({
     },
     // credentials: "include",
   }),
-  tagTypes: ["Product", "Banner", "Email", "Notification"],
+  tagTypes: ["Product", "Banner", "Email", "Notification", "Messages"],
   endpoints: (builder) => ({
     register: builder.mutation<
       void,
@@ -246,6 +271,30 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getChatHistory: builder.query<ChatMessage[], number>({
+      query: (roomId) => ({
+        url: `/api/chat-details/${roomId}/`,
+        method: "GET",
+      }),
+      providesTags: (result, error, roomId) => [
+        { type: "Notification", id: `chat-${roomId}` },
+      ],
+    }),
+    sendMessage: builder.mutation<
+      {
+        message: ChatMessage;
+        ai_response: string | ChatProductResponse;
+        result: string | ChatProductResponse;
+      },
+      { room?: number; message: string }
+    >({
+      query: (body) => ({
+        url: "/api/send-message/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Messages"],
+    }),
     getEmails: builder.query<any, void>({
       query: () => ({
         url: "/api/email-list/",
@@ -357,6 +406,8 @@ export const {
   useGetUsersQuery,
   // chats
   useGetChatsQuery,
+  useGetChatHistoryQuery,
+  useSendMessageMutation,
   useGetEmailsQuery,
   useCreateEmailMutation,
   useGetEmailDetailQuery,

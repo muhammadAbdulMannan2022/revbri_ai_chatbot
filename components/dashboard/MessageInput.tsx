@@ -7,12 +7,14 @@ export default function MessageBox({
   setMessage,
   setFiles,
   onSend,
+  disabled = false,
 }: {
   message: any;
   files: File[];
   setMessage: Function;
   setFiles: Function;
   onSend: Function;
+  disabled?: boolean;
 }) {
   const handleSend = () => {
     onSend();
@@ -57,7 +59,7 @@ export default function MessageBox({
   };
 
   return (
-    <div className="flex flex-col items-center justify-end w-full absolute bottom-5 gap-2 px-3 bg-[#EFF2F6]">
+    <div className="flex flex-col items-center justify-end w-full absolute bottom-5 gap-2 px-3 ">
       {files.length > 0 && (
         <div className="w-full max-w-4xl flex flex-wrap gap-2 px-4 mx-3">
           {files.map((file, index) => (
@@ -96,7 +98,7 @@ export default function MessageBox({
         {/* Send Button */}
         <button
           onClick={handleSend}
-          disabled={!message.trim() && files.length === 0}
+          disabled={disabled || (!message.trim() && files.length === 0)}
           className="shrink-0 p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer"
           aria-label="Send message"
         >
