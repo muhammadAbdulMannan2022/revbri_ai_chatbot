@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 import {
   BarChart3,
   Bell,
@@ -20,6 +21,7 @@ import {
 
 import logo from "@/assets/main/logo.png";
 import { useGetProfileQuery } from "@/lib/authApi";
+import { logout } from "@/lib/authSlice";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
@@ -51,6 +53,7 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useDispatch();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const {
     data: user,
@@ -59,7 +62,31 @@ export default function AdminShell({
   } = useGetProfileQuery();
 
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("token");
+
+    // Clear all localStorage keys that contain auth or token info
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (
+        key.startsWith("persist:") ||
+        key.includes("auth") ||
+        key.includes("token")
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Dispatch logout action to clear Redux state
+    dispatch(logout());
+
     setShowLogoutModal(false);
+
+    // Redirect to login
     router.push("/auth/login");
   };
 

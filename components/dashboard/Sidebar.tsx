@@ -2,11 +2,12 @@
 
 import { ArrowLeft, ArrowRight, Home, LogOut, User } from "lucide-react";
 import { useState } from "react";
-
+import { useDispatch } from "react-redux";
 import { useRouter, usePathname } from "next/navigation";
 import { RiChat1Line, RiExchangeDollarLine } from "react-icons/ri";
 import SidebarChatList from "./SidebarChat";
 import { BsChatDots } from "react-icons/bs";
+import { logout } from "@/lib/authSlice";
 
 const agentsData = [
   {
@@ -36,12 +37,40 @@ export default function Sidebar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("token");
+
+    // Clear all localStorage as a fallback
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (
+        key.startsWith("persist:") ||
+        key.includes("auth") ||
+        key.includes("token")
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Dispatch logout action to clear Redux state
+    dispatch(logout());
+
+    // Redirect to login
+    router.push("/auth/login");
+  };
 
   const handleNavigate = (to: string) => {
     if (to !== "logout") {
       router.push(to);
     } else {
-      console.log("log out");
+      handleLogout();
     }
   };
 
