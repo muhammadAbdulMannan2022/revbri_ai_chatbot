@@ -532,7 +532,12 @@ export function EmailPreparationModal({
         if (!isNaN(d.getTime())) setDate(d.toISOString().split("T")[0]);
       }
       if (initial.set_time) setTime(initial.set_time.slice(0, 5));
-      if (initial.select_audience) setAudience(initial.select_audience);
+      if (initial.select_audience) {
+        const aud = Array.isArray(initial.select_audience)
+          ? initial.select_audience[0]
+          : initial.select_audience;
+        setAudience(aud || "");
+      }
       if (initial.is_repeated) setRepeatContinuously(Boolean(initial.is_repeated));
       if (initial.repeated_type) {
         if (initial.repeated_type === "daily") setRepeating("every_3_days");
@@ -553,16 +558,26 @@ export function EmailPreparationModal({
   }, [open, initial]);
 
   const buildEmailPayload = (isActive = true) => {
-    let set_date = new Date().toISOString();
-    if (date) {
-      const timePart = time || "00:00";
-      const combined = `${date}T${timePart}`;
-      const d = new Date(combined);
-      if (!isNaN(d.getTime())) set_date = d.toISOString();
-    }
-    const set_time = time
+    const localDateStr = date || new Date().toISOString().split("T")[0];
+    const localTimeStr = time
       ? `${time}:00`
-      : new Date(set_date).toTimeString().split(" ")[0];
+      : new Date().toTimeString().split(" ")[0].slice(0, 8);
+
+    const [year, month, day] = localDateStr.split("-").map(Number);
+    const [hours, minutes, seconds] = localTimeStr.split(":").map(Number);
+
+    const localDateObj = new Date(year, month - 1, day, hours, minutes, seconds || 0);
+
+    const utcYear = localDateObj.getUTCFullYear();
+    const utcMonth = String(localDateObj.getUTCMonth() + 1).padStart(2, "0");
+    const utcDay = String(localDateObj.getUTCDate()).padStart(2, "0");
+
+    const utcHours = String(localDateObj.getUTCHours()).padStart(2, "0");
+    const utcMinutes = String(localDateObj.getUTCMinutes()).padStart(2, "0");
+    const utcSeconds = String(localDateObj.getUTCSeconds()).padStart(2, "0");
+
+    const set_date = `${utcYear}-${utcMonth}-${utcDay}`;
+    const set_time = `${utcHours}:${utcMinutes}:${utcSeconds}`;
 
     let repeated_type = "";
     if (repeatContinuously) {
@@ -571,10 +586,13 @@ export function EmailPreparationModal({
       else if (repeating === "custom") repeated_type = customRepeating || "custom";
     }
 
+    const user_time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Dhaka";
+
     return {
       set_date,
       set_time,
-      select_audience: audience,
+      user_time_zone,
+      select_audience: audience ? [audience] : [],
       is_repeated: !!repeatContinuously,
       repeated_type,
       describe_email: description,

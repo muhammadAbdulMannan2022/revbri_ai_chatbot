@@ -97,6 +97,49 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface KnowledgePdf {
+  id: number;
+  file: string;
+  is_active: boolean;
+}
+
+export interface BlockQuery {
+  id: number;
+  word: string;
+}
+
+export interface AiSettings {
+  id: number;
+  ai_restriction: string;
+  response_style: string;
+  total_query_count: number;
+  today_query_count: number;
+  today_date: string;
+  is_active: boolean;
+}
+
+export type AiSettingsPatch = Partial<Pick<AiSettings, "ai_restriction" | "response_style" | "is_active">>;
+
+export interface UserNotification {
+  id: number;
+  user: number;
+  title: string;
+  notification_banner: string | null;
+  select_audience: string[];
+  description: string;
+  is_read: boolean;
+  is_deleted: boolean;
+  created_at: string;
+}
+
+export interface UserNotificationResponse {
+  success: boolean;
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: UserNotification[];
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -118,7 +161,7 @@ export const authApi = createApi({
     },
     // credentials: "include",
   }),
-  tagTypes: ["Product", "Banner", "Email", "Notification", "Messages"],
+  tagTypes: ["Product", "Banner", "Email", "Notification", "Messages", "KnowledgePdf", "BlockQuery", "AiSettings", "UserNotification"],
   endpoints: (builder) => ({
     register: builder.mutation<
       void,
@@ -295,6 +338,41 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Messages"],
     }),
+    // ── Knowledge PDFs ─────────────────────────────────────────────────────────
+    getKnowledgePdfs: builder.query<{ success: boolean; count: number; results: KnowledgePdf[] }, void>({
+      query: () => ({ url: "/api/knowledge-pdf-list/", method: "GET" }),
+      providesTags: ["KnowledgePdf"],
+    }),
+    createKnowledgePdf: builder.mutation<KnowledgePdf, FormData>({
+      query: (body) => ({ url: "/api/knowledge-pdf-create/", method: "POST", body }),
+      invalidatesTags: ["KnowledgePdf"],
+    }),
+    deleteKnowledgePdf: builder.mutation<void, number>({
+      query: (id) => ({ url: `/api/knowledge-pdf-delete/${id}/`, method: "DELETE" }),
+      invalidatesTags: ["KnowledgePdf"],
+    }),
+    // ── Block Queries ──────────────────────────────────────────────────────────
+    getBlockQueries: builder.query<{ count: number; next: string | null; previous: string | null; results: BlockQuery[] }, void>({
+      query: () => ({ url: "/api/block-query-list/", method: "GET" }),
+      providesTags: ["BlockQuery"],
+    }),
+    createBlockQuery: builder.mutation<BlockQuery, { word: string }>({
+      query: (body) => ({ url: "/api/block-query-create/", method: "POST", body }),
+      invalidatesTags: ["BlockQuery"],
+    }),
+    deleteBlockQuery: builder.mutation<void, number>({
+      query: (id) => ({ url: `/api/block-query-delete/${id}/`, method: "DELETE" }),
+      invalidatesTags: ["BlockQuery"],
+    }),
+    // ── AI Settings ────────────────────────────────────────────────────────────
+    getAiSettings: builder.query<AiSettings, void>({
+      query: () => ({ url: "/api/ai-settings/", method: "GET" }),
+      providesTags: ["AiSettings"],
+    }),
+    updateAiSettings: builder.mutation<AiSettings, AiSettingsPatch>({
+      query: (body) => ({ url: "/api/ai-settings/", method: "PATCH", body }),
+      invalidatesTags: ["AiSettings"],
+    }),
     getEmails: builder.query<any, void>({
       query: () => ({
         url: "/api/email-list/",
@@ -306,7 +384,8 @@ export const authApi = createApi({
       {
         set_date: string;
         set_time: string;
-        select_audience: string;
+        user_time_zone?: string;
+        select_audience: string[];
         is_repeated: boolean;
         repeated_type: string;
         describe_email: string;
@@ -381,6 +460,20 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["Notification"],
     }),
+    getUserNotifications: builder.query<UserNotificationResponse, void>({
+      query: () => ({
+        url: "/api/user-notification-list/",
+        method: "GET",
+      }),
+      providesTags: ["UserNotification"],
+    }),
+    deleteUserNotification: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/user-del-notification/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["UserNotification"],
+    }),
   }),
 });
 
@@ -408,6 +501,14 @@ export const {
   useGetChatsQuery,
   useGetChatHistoryQuery,
   useSendMessageMutation,
+  useGetKnowledgePdfsQuery,
+  useCreateKnowledgePdfMutation,
+  useDeleteKnowledgePdfMutation,
+  useGetBlockQueriesQuery,
+  useCreateBlockQueryMutation,
+  useDeleteBlockQueryMutation,
+  useGetAiSettingsQuery,
+  useUpdateAiSettingsMutation,
   useGetEmailsQuery,
   useCreateEmailMutation,
   useGetEmailDetailQuery,
@@ -418,4 +519,6 @@ export const {
   useGetNotificationDetailQuery,
   useUpdateNotificationMutation,
   useDeleteNotificationMutation,
+  useGetUserNotificationsQuery,
+  useDeleteUserNotificationMutation,
 } = authApi;
