@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Home, LogOut, User, Bell } from "lucide-react";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter, usePathname } from "next/navigation";
 import { RiChat1Line, RiExchangeDollarLine } from "react-icons/ri";
@@ -131,7 +131,9 @@ export default function Sidebar({
           <div className="w-[80%]  relative flex flex-col">
             {/* chat section */}
             <div className="flex-1 overflow-y-auto hide-scrollbar relative mt-3 px-4">
-              <SidebarChatList />
+              <Suspense fallback={<div className="h-full" />}>
+                <SidebarChatList />
+              </Suspense>
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Bell, Trash2, Loader2, Inbox, Calendar, User } from "lucide-react";
 import {
   useGetUserNotificationsQuery,
@@ -24,7 +24,7 @@ const formatDate = (dateStr: string) => {
   }
 };
 
-export default function NotificationsPage() {
+function NotificationsContent() {
   const { data, isLoading, isError, refetch } = useGetUserNotificationsQuery();
   const [deleteNotification] = useDeleteUserNotificationMutation();
 
@@ -245,5 +245,21 @@ export default function NotificationsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// ── Page shell — wraps content in <Suspense> so the dashboard layout's
+// useSearchParams() usage doesn't cause a prerender error at build time.
+export default function NotificationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#ff5a5a] border-t-transparent" />
+        </div>
+      }
+    >
+      <NotificationsContent />
+    </Suspense>
   );
 }
