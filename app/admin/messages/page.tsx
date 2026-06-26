@@ -86,11 +86,11 @@ const formatTime = (timeString: string) => {
 
 const audienceBadge = (audience: string | string[] | unknown) => {
   const map: Record<string, { bg: string; text: string; label: string }> = {
-    free:     { bg: "bg-[#f0fdf4]", text: "text-[#16a34a]", label: "Free" },
-    premium:  { bg: "bg-[#fdf4ff]", text: "text-[#9333ea]", label: "Premium" },
+    free: { bg: "bg-[#f0fdf4]", text: "text-[#16a34a]", label: "Free" },
+    premium: { bg: "bg-[#fdf4ff]", text: "text-[#9333ea]", label: "Premium" },
     business: { bg: "bg-[#eff6ff]", text: "text-[#2563eb]", label: "Business" },
-    tiered:   { bg: "bg-[#fff7ed]", text: "text-[#ea580c]", label: "Tiered" },
-    active:   { bg: "bg-[#f0fdf4]", text: "text-[#16a34a]", label: "Active" },
+    tiered: { bg: "bg-[#fff7ed]", text: "text-[#ea580c]", label: "Tiered" },
+    active: { bg: "bg-[#f0fdf4]", text: "text-[#16a34a]", label: "Active" },
     inactive: { bg: "bg-[#f9fafb]", text: "text-[#6b7280]", label: "Inactive" },
   };
   // API may return a JSON array like ["free"] or a plain string "free"
@@ -136,7 +136,11 @@ function ConfirmDeleteModal({
         {/* Icon strip */}
         <div className="flex flex-col items-center gap-3 bg-[#fff8f8] px-8 pt-8 pb-6 border-b border-[#fde8e8]">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fef2f2] shadow-sm">
-            <AlertTriangle size={26} className="text-[#ef5b5e]" strokeWidth={2} />
+            <AlertTriangle
+              size={26}
+              className="text-[#ef5b5e]"
+              strokeWidth={2}
+            />
           </div>
           <h3 className="text-[17px] font-extrabold text-[#151b26] text-center">
             {title}
@@ -385,7 +389,10 @@ export default function MessagesPage() {
         onConfirm={async (payload) => {
           try {
             if (selectedEmail) {
-              await updateEmail({ id: selectedEmail.id, body: payload }).unwrap();
+              await updateEmail({
+                id: selectedEmail.id,
+                body: payload,
+              }).unwrap();
               toast.success("Email updated");
               setSelectedEmail(null);
             } else {
@@ -541,8 +548,9 @@ export default function MessagesPage() {
                             className="shrink-0 text-[#94a3b8]"
                             strokeWidth={1.8}
                           />
-                          <span className="font-medium">
-                            {email.set_time ? formatTime(email.set_time) : "—"}
+                          <span className="font-medium uppercase">
+                            {email.set_time ? formatTime(email.set_time) : "—"}{" "}
+                            UTC+0
                           </span>
                         </div>
                       </td>
@@ -610,7 +618,11 @@ export default function MessagesPage() {
                               setPendingDelete({
                                 kind: "email",
                                 id: email.id,
-                                label: String(Array.isArray(email.select_audience) ? email.select_audience[0] : email.select_audience),
+                                label: String(
+                                  Array.isArray(email.select_audience)
+                                    ? email.select_audience[0]
+                                    : email.select_audience,
+                                ),
                               })
                             }
                             className="flex items-center gap-1.5 rounded-[6px] px-2.5 py-1.5 text-[10px] font-bold text-[#ef4444] transition hover:bg-[#fff1f1]"
