@@ -108,12 +108,8 @@ const AccountSettings: React.FC = () => {
       return;
     }
 
-    const body = new FormData();
-    body.append("email", profileForm.email);
-    body.append("new_password", profileForm.newPassword);
-
     try {
-      await resetPassword(body).unwrap();
+      await resetPassword({ email: profileForm.email, new_password: profileForm.newPassword }).unwrap();
       setPasswordMessage("Password updated successfully.");
       setProfileForm((prev) => ({
         ...prev,

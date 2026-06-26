@@ -220,7 +220,7 @@ export const authApi = createApi({
         body,
       }),
     }),
-    resetPassword: builder.mutation<void, FormData>({
+    resetPassword: builder.mutation<void, { email: string; new_password: string }>({
       query: (body) => ({
         url: "/api/reset-password/",
         method: "POST",
