@@ -58,10 +58,12 @@ export default function Sidebar({
   return (
     <aside
       className={`bg-white absolute md:relative top-20 h-[calc(100vh-5rem)] left-0
-      w-[90%] sm:w-[80%] md:w-[20%] md:min-w-100
       transform transition-transform duration-300 z-10
       ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      md:translate-x-0`}
+      md:translate-x-0
+      ${pathname === "/dashboard"
+        ? "w-[90%] sm:w-[80%] md:w-[24%] md:min-w-100"
+        : "w-20"}`}
     >
       {/* toggle btn */}
       <button
@@ -77,7 +79,7 @@ export default function Sidebar({
 
       <div className="w-full h-full flex ">
         {/* left icons */}
-        <div className="w-[23%] flex flex-col items-center gap-3 py-4 px-4 border-r border-gray-200">
+        <div className="w-18 shrink-0 flex flex-col items-center gap-3 py-4 px-1 border-r border-gray-200">
           {[
             {
               name: "Chat",
@@ -126,10 +128,9 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* right content */}
-        {pathname.startsWith("/dashboard") && (
-          <div className="w-[80%]  relative flex flex-col">
-            {/* chat section */}
+        {/* chat list — only on /dashboard */}
+        {pathname === "/dashboard" && (
+          <div className="w-[80%] relative flex flex-col">
             <div className="flex-1 overflow-y-auto hide-scrollbar relative mt-3 px-4">
               <Suspense fallback={<div className="h-full" />}>
                 <SidebarChatList />

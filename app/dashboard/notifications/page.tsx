@@ -39,59 +39,47 @@ function NotificationsContent() {
     }
   }, [data]);
 
-  // WebSocket Live Connection
+  // WebSocket — best-effort live updates. Any failure is silently ignored;
+  // the page always shows data from the REST API regardless.
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
-    const wsUrl = `ws://39c4-103-186-20-8.ngrok-free.app/ws/notifications/?token=${token}`;
-    const ws = new WebSocket(wsUrl);
+    let ws: WebSocket | null = null;
+    try {
+      const proto = window.location.protocol === "https:" ? "wss" : "ws";
+      ws = new WebSocket(
+        `${proto}://39c4-103-186-20-8.ngrok-free.app/ws/notifications/?token=${token}`,
+      );
 
-    ws.onopen = () => {
-      console.log("WebSocket connected to notifications");
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        console.log("WebSocket message received:", payload);
-
-        // If the payload has notification data (either direct or nested), prepend it.
-        const newNotif =
-          payload.notification ||
-          (payload.id && payload.title ? payload : null);
-
-        if (newNotif) {
-          setLiveNotifications((prev) => {
-            // Avoid duplicate rendering
-            if (prev.some((n) => n.id === newNotif.id)) return prev;
-            return [newNotif as UserNotification, ...prev];
-          });
-          toast.success(
-            `New Alert: ${newNotif.title || "Notification received"}`,
-          );
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          const newNotif =
+            payload.notification ||
+            (payload.id && payload.title ? payload : null);
+          if (newNotif) {
+            setLiveNotifications((prev) =>
+              prev.some((n) => n.id === newNotif.id)
+                ? prev
+                : [newNotif as UserNotification, ...prev],
+            );
+            toast.success(`New: ${newNotif.title || "Notification received"}`);
+          }
+          refetch();
+        } catch {
+          /* ignore malformed frames */
         }
+      };
 
-        // Refetch to sync state in the RTK Query cache
-        refetch();
-      } catch (err) {
-        console.error("Error parsing WebSocket message:", err);
-        refetch();
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
+      ws.onerror = () => { /* silently ignore */ };
+    } catch {
+      /* WebSocket constructor failed — ignore, REST data still shows */
+    }
 
     return () => {
-      ws.close();
+      try { ws?.close(); } catch { /* ignore */ }
     };
   }, [refetch]);
 
