@@ -10,9 +10,13 @@ import {
 } from "lucide-react";
 import type { ChatMessage, ChatProductResponse } from "@/lib/authApi";
 
-// ─── Type guard ───────────────────────────────────────────────────────────────
+// ─── Type guards ──────────────────────────────────────────────────────────────
 function isProductResponse(v: unknown): v is ChatProductResponse {
   return typeof v === "object" && v !== null && "results" in v;
+}
+
+function isErrorResponse(v: unknown): v is { error: string; source?: string } {
+  return typeof v === "object" && v !== null && "error" in v;
 }
 
 // ─── Thinking bubble shown while AI is generating ────────────────────────────
@@ -20,7 +24,7 @@ function ThinkingBubble() {
   return (
     <div className="flex justify-start">
       <div className="flex items-end gap-2 max-w-[80%]">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
           <Bot size={14} className="text-white" strokeWidth={2} />
         </div>
         <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-sm">
@@ -86,10 +90,30 @@ function ProductCard({
 }
 
 // ─── AI response bubble ───────────────────────────────────────────────────────
-function AIBubble({ response }: { response: string | ChatProductResponse }) {
+function AIBubble({
+  response,
+}: {
+  response: string | ChatProductResponse | { error: string; source?: string };
+}) {
   const isThinking = response === "…";
 
   if (isThinking) return <ThinkingBubble />;
+
+  // Backend returned an error object (e.g. OpenAI quota exceeded)
+  if (isErrorResponse(response)) {
+    return (
+      <div className="flex justify-start">
+        <div className="flex items-end gap-2 max-w-[80%]">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
+            <Bot size={14} className="text-white" strokeWidth={2} />
+          </div>
+          <div className="rounded-2xl rounded-bl-sm border border-red-100 bg-red-50 px-4 py-3 text-[13px] leading-relaxed text-red-600 shadow-sm">
+            ⚠️ The AI couldn&apos;t respond right now. Please try again later.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isProductResponse(response)) {
     const { query, results } = response;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useGetUsersQuery } from "@/lib/authApi";
 
@@ -17,10 +17,10 @@ const filterTabs: { label: string; key: FilterTab }[] = [
 ];
 
 const packageStyles: Record<string, string> = {
-  Premium: "bg-[#dbeafe] text-[#2563eb]",
   Free: "bg-[#eef2f7] text-[#283445]",
-  Business: "bg-[#eadcff] text-[#7c3aed]",
-  // Fallback for missing or unknown tiers
+  Core: "bg-[#dbeafe] text-[#2563eb]",
+  Builder: "bg-[#eadcff] text-[#7c3aed]",
+  Anchor: "bg-[#fff1f1] text-[#ef5b5e]",
   Standard: "bg-[#eef2f7] text-[#283445]",
 };
 
@@ -47,34 +47,50 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
+const USERS_PER_PAGE = 10;
+
 export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 1. Fetching data from your custom hook
   const { data: apiUsers, isLoading, isError } = useGetUsersQuery();
 
-  // 2. Normalizing API data with fallbacks for UI fields missing in the endpoint
+  // 2. Normalizing API data with the exact keys returned by /api/admin-user-list/
   const users = useMemo(() => {
     if (!apiUsers) return [];
 
-    return apiUsers.map((user: any) => {
-      // Mocking or mapping fields that the API doesn't explicitly provide yet
-      const isPaid = user.userole === "admin"; // Example conditional logic
-      const pkg = isPaid ? "Business" : "Free";
-      const usage = isPaid ? "High" : "Low";
-      const status = user.is_verified ? "Active" : "Inactive";
+    const userList = Array.isArray(apiUsers)
+      ? apiUsers
+      : (apiUsers && Array.isArray(apiUsers.results)
+        ? apiUsers.results
+        : (apiUsers && Array.isArray(apiUsers.data)
+          ? apiUsers.data
+          : []));
+
+    return userList.map((user: any) => {
+      // Normalize package name to capitalization (Free, Core, Builder, Anchor)
+      let rawPkg = user.package || "Free";
+      const pkg = rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
+      
+      const isPaid = pkg !== "Free";
+      const usage = user.usage_level || (isPaid ? "Medium" : "Low");
+      const status = user.status && user.status.toLowerCase() === "active" ? "Active" : "Inactive";
+
+      // Safely get initials from full_name or email
+      const name = user.full_name || user.email?.split("@")[0] || "Unknown User";
 
       return {
         id: user.id,
-        initials: getInitials(user.full_name),
+        initials: getInitials(name),
         name: user.full_name || "Unknown User",
         email: user.email,
         package: pkg,
-        joinDate: "2024-01-15", // Mocked fallback since it's not in the response payload
-        queries: isPaid ? "4,120" : "120", // Mocked fallback
+        joinDate: user.join_date || "N/A",
+        queries: String(user.ai_queries ?? 0),
         usage: usage,
-        lastActive: "Just now", // Mocked fallback
+        lastActive: user.last_active || "N/A",
         status: status,
       };
     });
@@ -115,6 +131,18 @@ export default function AdminUsersPage() {
       return matchesTab && matchesSearch;
     });
   }, [activeTab, searchTerm, users]);
+
+  // Reset pagination to first page when search or tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab]);
+
+  const totalPages = Math.ceil(visibleUsers.length / USERS_PER_PAGE);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * USERS_PER_PAGE;
+    return visibleUsers.slice(start, start + USERS_PER_PAGE);
+  }, [visibleUsers, currentPage]);
 
   return (
     <>
@@ -211,7 +239,7 @@ export default function AdminUsersPage() {
               {/* Displaying Live Data */}
               {!isLoading &&
                 !isError &&
-                visibleUsers.map((user: any) => (
+                paginatedUsers.map((user: any) => (
                   <tr
                     key={user.id || user.email}
                     className="border-b border-[#edf0f4] text-[13px] text-[#273244] last:border-b-0"
@@ -277,24 +305,40 @@ export default function AdminUsersPage() {
 
         <div className="flex items-center justify-between px-[22px] py-[18px]">
           <p className="text-[13px] text-[#4e5b6c]">
-            Showing {visibleUsers.length === 0 ? 0 : 1} to {visibleUsers.length}{" "}
-            of {visibleUsers.length} users
+            Showing {visibleUsers.length === 0 ? 0 : (currentPage - 1) * USERS_PER_PAGE + 1} to {Math.min(currentPage * USERS_PER_PAGE, visibleUsers.length)} of {visibleUsers.length} users
           </p>
 
-          <div className="flex items-center gap-[8px]">
-            <button className="h-[34px] rounded-md border border-[#d9e0e8] bg-white px-[14px] text-[12px] font-semibold text-[#273244]">
-              Previous
-            </button>
-            <button className="h-[34px] min-w-[34px] rounded-md bg-[#ef5b5e] px-[10px] text-[12px] font-semibold text-white">
-              1
-            </button>
-            <button className="h-[34px] min-w-[34px] rounded-md border border-[#d9e0e8] bg-white px-[10px] text-[12px] font-semibold text-[#273244]">
-              2
-            </button>
-            <button className="h-[34px] rounded-md border border-[#d9e0e8] bg-white px-[14px] text-[12px] font-semibold text-[#273244]">
-              Next
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-[8px]">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                className="h-[34px] rounded-md border border-[#d9e0e8] bg-white px-[14px] text-[12px] font-semibold text-[#273244] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-[34px] min-w-[34px] rounded-md px-[10px] text-[12px] font-semibold transition cursor-pointer active:scale-98 ${
+                    currentPage === page
+                      ? "bg-[#ef5b5e] text-white"
+                      : "bg-white border border-[#d9e0e8] text-[#273244] hover:bg-gray-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                className="h-[34px] rounded-md border border-[#d9e0e8] bg-white px-[14px] text-[12px] font-semibold text-[#273244] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </>

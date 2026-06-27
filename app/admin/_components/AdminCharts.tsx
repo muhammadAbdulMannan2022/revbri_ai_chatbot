@@ -53,11 +53,12 @@ const chartTooltipStyle = {
   fontSize: 11,
 };
 
-export function RevenueGrowthChart() {
+export function RevenueGrowthChart({ data }: { data?: Array<{ month: string; revenue: number }> }) {
+  const chartData = data && data.length > 0 ? data : revenueData;
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart
-        data={revenueData}
+        data={chartData}
         margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
       >
         <CartesianGrid stroke="#edf0f4" strokeDasharray="3 3" vertical />
@@ -72,9 +73,7 @@ export function RevenueGrowthChart() {
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 9, fill: "#7a8493" }}
-          
-          domain={[0, 100000]}
-          ticks={[0, 25000, 50000, 75000, 100000]}
+          domain={[0, "auto"]}
           width={50}
         />
         <Tooltip
@@ -100,11 +99,12 @@ export function RevenueGrowthChart() {
   );
 }
 
-export function WeeklyEngagementChart() {
+export function WeeklyEngagementChart({ data }: { data?: Array<{ day: string; activeUsers: number }> }) {
+  const chartData = data && data.length > 0 ? data : engagementData;
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart
-        data={engagementData}
+        data={chartData}
         margin={{ top: 3, right: 4, left: -10, bottom: 0 }}
       >
         <CartesianGrid stroke="#edf0f4" strokeDasharray="3 3" vertical />
@@ -119,8 +119,7 @@ export function WeeklyEngagementChart() {
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 9, fill: "#7a8493" }}
-          domain={[0, 10000]}
-          ticks={[0, 2500, 5000, 7500, 10000]}
+          domain={[0, "auto"]}
           width={42}
         />
         <Tooltip
@@ -155,12 +154,13 @@ export function WeeklyEngagementChart() {
   );
 }
 
-export function UserDistributionChart() {
+export function UserDistributionChart({ data }: { data?: Array<{ name: string; value: number; color: string }> }) {
+  const chartData = data && data.length > 0 ? data : userDistributionData;
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <PieChart>
         <Pie
-          data={userDistributionData}
+          data={chartData}
           cx="50%"
           cy="58%"
           dataKey="value"
@@ -172,7 +172,7 @@ export function UserDistributionChart() {
           endAngle={360}
           isAnimationActive={false}
         >
-          {userDistributionData.map((entry) => (
+          {chartData.map((entry) => (
             <Cell key={entry.name} fill={entry.color} />
           ))}
         </Pie>

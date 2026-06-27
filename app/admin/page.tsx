@@ -1,14 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Activity, UserCheck, UserPlus, UserRound, Users } from "lucide-react";
+import { Activity, Loader2, UserCheck, UserPlus, UserRound, Users } from "lucide-react";
+import { useGetAdminDashboardStatsQuery } from "@/lib/authApi";
 
 const RevenueGrowthChart = dynamic(
   () =>
     import("./_components/AdminCharts").then((mod) => mod.RevenueGrowthChart),
   {
     ssr: false,
-    loading: () => <div className="h-full w-full" />,
+    loading: () => <div className="h-full w-full bg-slate-50/50 rounded-xl" />,
   },
 );
 
@@ -19,7 +20,7 @@ const WeeklyEngagementChart = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <div className="h-full w-full" />,
+    loading: () => <div className="h-full w-full bg-slate-50/50 rounded-xl" />,
   },
 );
 
@@ -30,60 +31,74 @@ const UserDistributionChart = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <div className="h-full w-full" />,
+    loading: () => <div className="h-full w-full bg-slate-50/50 rounded-xl" />,
   },
 );
 
-const statCards = [
-  {
-    label: "Total Users",
-    value: "4,807",
-    note: "+8.2% from last month",
-    icon: Users,
-  },
-  {
-    label: "Active Users",
-    value: "3,892",
-    note: "81% of total",
-    icon: Activity,
-  },
-  {
-    label: "Inactive Users",
-    value: "915",
-    note: "19% of total",
-    icon: UserRound,
-  },
-];
-
-const activities = [
-  {
-    name: "John Doe",
-    detail: "upgraded to Premium plan",
-    time: "2 minutes ago",
-  },
-  {
-    name: "Sarah Smith",
-    detail: "registered for webinar 'AI Best Practices'",
-    time: "15 minutes ago",
-  },
-  {
-    name: "Mike Johnson",
-    detail: "reached 500 AI queries",
-    time: "1 hour ago",
-  },
-  {
-    name: "Emma Wilson",
-    detail: "submitted collaboration proposal",
-    time: "2 hours ago",
-  },
-  {
-    name: "Alex Brown",
-    detail: "redeemed coupon 'SUMMER25'",
-    time: "3 hours ago",
-  },
-];
-
 export default function AdminPage() {
+  const { data: stats, isLoading, isError } = useGetAdminDashboardStatsQuery();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-[#ef5b5e]" />
+      </div>
+    );
+  }
+
+  if (isError || !stats) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] flex-col items-center justify-center gap-4 text-center">
+        <p className="text-slate-500 font-semibold">Failed to load admin stats.</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-5 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold shadow-md hover:bg-rose-600 transition"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const statCards = [
+    {
+      label: "Total Users",
+      value: String(stats.total_users),
+      note: "All-time registrations",
+      icon: Users,
+    },
+    {
+      label: "Active Users",
+      value: String(stats.active_users),
+      note: `${stats.active_users_percentage}% of total`,
+      icon: Activity,
+    },
+    {
+      label: "Inactive Users",
+      value: String(stats.inactive_users),
+      note: `${stats.inactive_users_percentage}% of total`,
+      icon: UserRound,
+    },
+  ];
+
+  const mappedWeeklyEngagement = stats.weekly_engagement.map((item) => ({
+    day: item.day,
+    activeUsers: item.users,
+  }));
+
+  const mappedUserDistribution = [
+    {
+      name: "Free Users",
+      value: stats.user_distribution.free_users_percentage,
+      color: "#d9dde3",
+    },
+    {
+      name: "Paid Subscribers",
+      value: stats.user_distribution.paid_subscribers_percentage,
+      color: "#ef5b5e",
+    },
+  ];
+
   return (
     <>
       <section>
@@ -101,7 +116,7 @@ export default function AdminPage() {
             return (
               <article
                 key={card.label}
-                className="flex h-[clamp(114px,8.4vw,148px)] items-center justify-between rounded-[10px] border border-[#d9e0e8] bg-white px-[clamp(22px,1.7vw,30px)] shadow-[0_1px_2px_rgba(15,23,42,0.05)]"
+                className="flex h-[clamp(114px,8.4vw,148px)] items-center justify-between rounded-[10px] border border-[#d9e0e8] bg-white px-[clamp(22px,1.7vw,30px)] shadow-[0_1px_2px_rgba(15,23,42,0.05)] animate-in fade-in slide-in-from-bottom-2 duration-300"
               >
                 <div>
                   <p className="text-[10px] font-bold text-[#1f2937]">
@@ -137,7 +152,7 @@ export default function AdminPage() {
           </h2>
 
           <div className="mt-[clamp(17px,1.7vw,30px)] h-[clamp(262px,19.4vw,340px)]">
-            <RevenueGrowthChart />
+            <RevenueGrowthChart data={stats.revenue_growth} />
           </div>
         </article>
 
@@ -147,7 +162,7 @@ export default function AdminPage() {
           </h2>
 
           <div className="mt-[clamp(17px,1.7vw,30px)] h-[clamp(262px,19.4vw,340px)]">
-            <WeeklyEngagementChart />
+            <WeeklyEngagementChart data={mappedWeeklyEngagement} />
           </div>
         </article>
       </section>
@@ -160,13 +175,13 @@ export default function AdminPage() {
 
           <div className="relative mt-[16px] h-[clamp(250px,17.6vw,310px)]">
             <span className="absolute left-[12px] top-[31px] text-[9px] font-medium text-[#a4abb6]">
-              Free Users 67%
+              Free Users {stats.user_distribution.free_users_percentage}%
             </span>
             <span className="absolute bottom-[27px] right-[14px] text-[9px] font-medium text-[#ef5b5e]">
-              Paid Subscribers 33%
+              Paid Subscribers {stats.user_distribution.paid_subscribers_percentage}%
             </span>
 
-            <UserDistributionChart />
+            <UserDistributionChart data={mappedUserDistribution} />
           </div>
 
           <div className="flex items-center justify-center gap-[14px]">
@@ -186,35 +201,42 @@ export default function AdminPage() {
             Recent Activities
           </h2>
 
-          <div className="mt-[13px]">
-            {activities.map((activity, index) => (
-              <div
-                key={`${activity.name}-${activity.time}`}
-                className={`flex items-start gap-[14px] py-[13px] ${
-                  index === activities.length - 1
-                    ? ""
-                    : "border-b border-[#edf0f4]"
-                }`}
-              >
-                <div className="mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border border-[#ffb8b8] bg-[#fff6f6] text-[#ef5b5e]">
-                  {index % 2 === 0 ? (
-                    <UserPlus size={10} strokeWidth={2} />
-                  ) : (
-                    <UserCheck size={10} strokeWidth={2} />
-                  )}
-                </div>
-
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-semibold text-[#1f2937]">
-                    <span className="font-extrabold">{activity.name}</span>{" "}
-                    {activity.detail}
-                  </p>
-                  <p className="mt-[5px] text-[9px] text-[#687386]">
-                    {activity.time}
-                  </p>
-                </div>
+          <div className="mt-[13px] overflow-y-auto max-h-[360px] hide-scrollbar">
+            {stats.recent_activities.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[260px] text-slate-400 text-xs gap-2">
+                <Users size={24} className="stroke-[1.5]" />
+                <p>No recent activity recorded.</p>
               </div>
-            ))}
+            ) : (
+              stats.recent_activities.map((activity, index) => (
+                <div
+                  key={`${activity.user}-${activity.time}`}
+                  className={`flex items-start gap-[14px] py-[13px] animate-in fade-in duration-200 ${
+                    index === stats.recent_activities.length - 1
+                      ? ""
+                      : "border-b border-[#edf0f4]"
+                  }`}
+                >
+                  <div className="mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border border-[#ffb8b8] bg-[#fff6f6] text-[#ef5b5e]">
+                    {index % 2 === 0 ? (
+                      <UserPlus size={10} strokeWidth={2} />
+                    ) : (
+                      <UserCheck size={10} strokeWidth={2} />
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="truncate text-[10px] font-semibold text-[#1f2937]">
+                      <span className="font-extrabold">{activity.user}</span>{" "}
+                      {activity.action}
+                    </p>
+                    <p className="mt-[5px] text-[9px] text-[#687386]">
+                      {activity.time}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </article>
       </section>

@@ -9,6 +9,7 @@ import { useLoginMutation } from "@/lib/authApi";
 import { useAppDispatch } from "@/lib/hooks";
 import { setEmail } from "@/lib/authSlice";
 import { getErrorMessage } from "@/lib/errorUtils";
+import { buildGoogleOAuthUrl } from "@/lib/googleOAuth";
 
 export default function SigninForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -138,6 +139,7 @@ export default function SigninForm() {
 
         <button
           type="button"
+          onClick={() => window.location.href = buildGoogleOAuthUrl("login")}
           className="w-full border hover:cursor-pointer border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl flex items-center justify-center gap-2.5 transition active:scale-[0.99] shadow-sm"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">

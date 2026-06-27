@@ -118,7 +118,9 @@ export interface AiSettings {
   is_active: boolean;
 }
 
-export type AiSettingsPatch = Partial<Pick<AiSettings, "ai_restriction" | "response_style" | "is_active">>;
+export type AiSettingsPatch = Partial<
+  Pick<AiSettings, "ai_restriction" | "response_style" | "is_active">
+>;
 
 export interface UserNotification {
   id: number;
@@ -132,6 +134,44 @@ export interface UserNotification {
   created_at: string;
 }
 
+export interface Plan {
+  id: number;
+  name: string;
+  plantype: string;
+  price: number;
+  questions_per_month: number;
+  stripe_price_id: string;
+  is_active: boolean;
+  billing_cycle?: string;
+  badge_label?: string;
+  features?: ProfileFeature[];
+}
+
+export interface AdminDashboardStats {
+  total_users: number;
+  active_users: number;
+  active_users_percentage: number;
+  inactive_users: number;
+  inactive_users_percentage: number;
+  user_distribution: {
+    free_users_percentage: number;
+    paid_subscribers_percentage: number;
+  };
+  revenue_growth: Array<{
+    month: string;
+    revenue: number;
+  }>;
+  weekly_engagement: Array<{
+    day: string;
+    users: number;
+  }>;
+  recent_activities: Array<{
+    user: string;
+    action: string;
+    time: string;
+  }>;
+}
+
 export interface UserNotificationResponse {
   success: boolean;
   count: number;
@@ -143,7 +183,7 @@ export interface UserNotificationResponse {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://39c4-103-186-20-8.ngrok-free.app",
+    baseUrl: "https://por-thesis-van-principle.trycloudflare.com",
     prepareHeaders: (headers, { getState }) => {
       // 1. Bypass the ngrok warning page
       headers.set("ngrok-skip-browser-warning", "true");
@@ -161,7 +201,18 @@ export const authApi = createApi({
     },
     // credentials: "include",
   }),
-  tagTypes: ["Product", "Banner", "Email", "Notification", "Messages", "KnowledgePdf", "BlockQuery", "AiSettings", "UserNotification"],
+  tagTypes: [
+    "Product",
+    "Banner",
+    "Email",
+    "Notification",
+    "Messages",
+    "KnowledgePdf",
+    "BlockQuery",
+    "AiSettings",
+    "UserNotification",
+    "Plan",
+  ],
   endpoints: (builder) => ({
     register: builder.mutation<
       void,
@@ -220,7 +271,10 @@ export const authApi = createApi({
         body,
       }),
     }),
-    resetPassword: builder.mutation<void, { email: string; new_password: string }>({
+    resetPassword: builder.mutation<
+      void,
+      { email: string; new_password: string }
+    >({
       query: (body) => ({
         url: "/api/reset-password/",
         method: "POST",
@@ -339,29 +393,54 @@ export const authApi = createApi({
       invalidatesTags: ["Messages"],
     }),
     // ── Knowledge PDFs ─────────────────────────────────────────────────────────
-    getKnowledgePdfs: builder.query<{ success: boolean; count: number; results: KnowledgePdf[] }, void>({
+    getKnowledgePdfs: builder.query<
+      { success: boolean; count: number; results: KnowledgePdf[] },
+      void
+    >({
       query: () => ({ url: "/api/knowledge-pdf-list/", method: "GET" }),
       providesTags: ["KnowledgePdf"],
     }),
     createKnowledgePdf: builder.mutation<KnowledgePdf, FormData>({
-      query: (body) => ({ url: "/api/knowledge-pdf-create/", method: "POST", body }),
+      query: (body) => ({
+        url: "/api/knowledge-pdf-create/",
+        method: "POST",
+        body,
+      }),
       invalidatesTags: ["KnowledgePdf"],
     }),
     deleteKnowledgePdf: builder.mutation<void, number>({
-      query: (id) => ({ url: `/api/knowledge-pdf-delete/${id}/`, method: "DELETE" }),
+      query: (id) => ({
+        url: `/api/knowledge-pdf-delete/${id}/`,
+        method: "DELETE",
+      }),
       invalidatesTags: ["KnowledgePdf"],
     }),
     // ── Block Queries ──────────────────────────────────────────────────────────
-    getBlockQueries: builder.query<{ count: number; next: string | null; previous: string | null; results: BlockQuery[] }, void>({
+    getBlockQueries: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: BlockQuery[];
+      },
+      void
+    >({
       query: () => ({ url: "/api/block-query-list/", method: "GET" }),
       providesTags: ["BlockQuery"],
     }),
     createBlockQuery: builder.mutation<BlockQuery, { word: string }>({
-      query: (body) => ({ url: "/api/block-query-create/", method: "POST", body }),
+      query: (body) => ({
+        url: "/api/block-query-create/",
+        method: "POST",
+        body,
+      }),
       invalidatesTags: ["BlockQuery"],
     }),
     deleteBlockQuery: builder.mutation<void, number>({
-      query: (id) => ({ url: `/api/block-query-delete/${id}/`, method: "DELETE" }),
+      query: (id) => ({
+        url: `/api/block-query-delete/${id}/`,
+        method: "DELETE",
+      }),
       invalidatesTags: ["BlockQuery"],
     }),
     // ── AI Settings ────────────────────────────────────────────────────────────
@@ -474,6 +553,37 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["UserNotification"],
     }),
+    getPlans: builder.query<Plan[], void>({
+      query: () => ({
+        url: "/api/plan-list/",
+        method: "GET",
+      }),
+      providesTags: ["Plan"],
+    }),
+    updatePlan: builder.mutation<Plan, { id: number; body: Partial<Plan> }>({
+      query: ({ id, body }) => ({
+        url: `/api/plan-detail/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Plan"],
+    }),
+    createCheckoutSession: builder.mutation<
+      { checkout_url: string; success?: boolean },
+      { plan_id: number; success_url: string; cancel_url: string }
+    >({
+      query: (body) => ({
+        url: "/api/create-checkout-session/",
+        method: "POST",
+        body,
+      }),
+    }),
+    getAdminDashboardStats: builder.query<AdminDashboardStats, void>({
+      query: () => ({
+        url: "/api/admin-dashboard-stats/",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -521,4 +631,8 @@ export const {
   useDeleteNotificationMutation,
   useGetUserNotificationsQuery,
   useDeleteUserNotificationMutation,
+  useGetPlansQuery,
+  useCreateCheckoutSessionMutation,
+  useGetAdminDashboardStatsQuery,
+  useUpdatePlanMutation,
 } = authApi;
