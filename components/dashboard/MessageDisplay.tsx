@@ -9,6 +9,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import type { ChatMessage, ChatProductResponse } from "@/lib/authApi";
+import Markdown from "react-markdown";
 
 // ─── Type guards ──────────────────────────────────────────────────────────────
 function isProductResponse(v: unknown): v is ChatProductResponse {
@@ -168,7 +169,7 @@ function AIBubble({
           <Bot size={14} className="text-white" strokeWidth={2} />
         </div>
         <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-[13px] leading-relaxed text-[#374151] shadow-sm whitespace-pre-wrap">
-          {response}
+          <Markdown>{response}</Markdown>
         </div>
       </div>
     </div>
