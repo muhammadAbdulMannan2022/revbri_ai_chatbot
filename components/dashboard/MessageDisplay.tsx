@@ -165,7 +165,7 @@ function AIBubble({
   return (
     <div className="flex justify-start">
       <div className="flex items-end gap-2 max-w-[80%]">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
           <Bot size={14} className="text-white" strokeWidth={2} />
         </div>
         <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-[13px] leading-relaxed text-[#374151] shadow-sm whitespace-pre-wrap">
