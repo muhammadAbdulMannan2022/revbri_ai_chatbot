@@ -100,20 +100,10 @@ export default function PricingPlansAdminPage() {
     }
   };
 
-  const getPlanFeatures = (plantype: string) => {
-    switch (plantype.toLowerCase()) {
-      case "free":
-        return ["Basic support", "Community access", "Email updates"];
-      default:
-        return [
-          "Priority AI suggestions",
-          "Custom dashboard integrations",
-          "Advanced conversation memory",
-          "Dedicated priority support",
-          "Weekly email analytics reports",
-        ];
-    }
-  };
+  const resolveFeatures = (features: any) =>
+    Array.isArray(features)
+      ? features.map((f: any) => (typeof f === "string" ? f : f.name || ""))
+      : [];
 
   const handleOpenEdit = (plan: any) => {
     setEditingPlan(plan);
@@ -124,14 +114,11 @@ export default function PricingPlansAdminPage() {
     setEditLimit(plan.questions_per_month);
     setEditBadgeLabel(plan.badge_label || "");
 
-    const rawFeatures = plan.features || [];
-    const initialFeatures = rawFeatures.map((f: any) =>
-      typeof f === "string" ? f : f.name || "",
-    );
+    const initialFeatures = resolveFeatures(plan.features);
     setEditFeatures(
       initialFeatures.length > 0
         ? initialFeatures
-        : getPlanFeatures(plan.plantype),
+        : [],
     );
   };
 
@@ -182,7 +169,7 @@ export default function PricingPlansAdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch w-full">
         {plans?.map((plan) => {
           const isBuilder = plan.plantype.toLowerCase() === "builder";
-          const features = getPlanFeatures(plan.plantype);
+          const features = resolveFeatures(plan.features);
 
           return (
             <div
@@ -231,9 +218,9 @@ export default function PricingPlansAdminPage() {
 
                 <div className="flex items-baseline text-slate-900 mb-6">
                   <span className="text-3xl font-black">${plan.price}</span>
-                  <span className="text-xs font-semibold text-slate-400 ml-1">
-                    /monthly
-                  </span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">
+                      /{plan.billing_cycle?.toLowerCase() || "monthly"}
+                    </span>
                 </div>
 
                 {/* AI Query Limit Highlight */}

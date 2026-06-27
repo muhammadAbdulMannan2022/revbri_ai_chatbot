@@ -7,7 +7,7 @@ import FiveStepProcessComponent from "@/components/home/FiveStepProcessComponent
 import FeaturedSolutions from "@/components/home/FeaturedSolutions";
 import TestimonialsComponent from "@/components/home/TestimonialsComponent";
 import TrustedByLeadersComponent from "@/components/home/TrustedByLeadersComponent";
-import PricingPlansPage from "../admin/pricing-plans/page";
+import PricingPlansPage from "@/components/home/PricingPlansPage";
 
 export default function LandingPage() {
   return (

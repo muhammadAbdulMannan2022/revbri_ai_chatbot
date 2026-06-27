@@ -14,40 +14,13 @@ import {
   YAxis,
 } from "recharts";
 
-const revenueUserData = [
-  { month: "Jan", revenue: 38000 },
-  { month: "Feb", revenue: 45500 },
-  { month: "Mar", revenue: 43000 },
-  { month: "Apr", revenue: 58500 },
-  { month: "May", revenue: 52000 },
-  { month: "Jun", revenue: 65000 },
-];
-
-const queryVolumeData = [
-  { month: "Jan", queries: 47000 },
-  { month: "Feb", queries: 54000 },
-  { month: "Mar", queries: 50000 },
-  { month: "Apr", queries: 69000 },
-  { month: "May", queries: 72000 },
-  { month: "Jun", queries: 93000 },
-];
-
-const hourlyData = [
-  { hour: "12AM", queries: 90 },
-  { hour: "1AM", queries: 35 },
-  { hour: "2AM", queries: 20 },
-  { hour: "3AM", queries: 170 },
-  { hour: "4AM", queries: 820 },
-  { hour: "5AM", queries: 1180 },
-  { hour: "6AM", queries: 1510 },
-  { hour: "7AM", queries: 1740 },
-  { hour: "8AM", queries: 920 },
-  { hour: "9AM", queries: 390 },
-  { hour: "10AM", queries: 40 },
-  { hour: "11AM", queries: 130 },
-  { hour: "12PM", queries: 830 },
-  { hour: "1PM", queries: 1180 },
-];
+interface ChartDataPoint {
+  month?: string;
+  hour?: string;
+  time?: string;
+  revenue?: number;
+  queries?: number;
+}
 
 const tooltipStyle = {
   border: "1px solid #e2e8f0",
@@ -56,11 +29,15 @@ const tooltipStyle = {
   fontSize: 11,
 };
 
-export function RevenueUserGrowthChart() {
+export function RevenueUserGrowthChart({
+  data,
+}: {
+  data: Array<{ month: string; revenue: number }>;
+}) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <AreaChart
-        data={revenueUserData}
+        data={data}
         margin={{ top: 5, right: 8, left: -12, bottom: 0 }}
       >
         <defs>
@@ -81,8 +58,7 @@ export function RevenueUserGrowthChart() {
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 9, fill: "#7a8493" }}
-          domain={[0, 65000]}
-          ticks={[0, 20000, 40000, 60000]}
+          domain={[0, "auto"]}
           width={46}
         />
         <Tooltip
@@ -90,7 +66,6 @@ export function RevenueUserGrowthChart() {
           contentStyle={tooltipStyle}
           formatter={(value) => {
             const amount = typeof value === "number" ? value : Number(value);
-
             return [`$${amount.toLocaleString()}`, "Revenue"];
           }}
         />
@@ -109,11 +84,15 @@ export function RevenueUserGrowthChart() {
   );
 }
 
-export function AiQueryVolumeChart() {
+export function AiQueryVolumeChart({
+  data,
+}: {
+  data: Array<{ month: string; queries: number }>;
+}) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart
-        data={queryVolumeData}
+        data={data}
         margin={{ top: 6, right: 6, left: -10, bottom: 0 }}
       >
         <CartesianGrid stroke="#edf0f4" strokeDasharray="3 3" vertical />
@@ -128,8 +107,7 @@ export function AiQueryVolumeChart() {
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 9, fill: "#7a8493" }}
-          domain={[0, 100000]}
-          ticks={[0, 25000, 50000, 75000, 100000]}
+          domain={[0, "auto"]}
           width={44}
         />
         <Tooltip
@@ -137,7 +115,6 @@ export function AiQueryVolumeChart() {
           contentStyle={tooltipStyle}
           formatter={(value) => {
             const count = typeof value === "number" ? value : Number(value);
-
             return [count.toLocaleString(), "AI Queries"];
           }}
         />
@@ -154,16 +131,20 @@ export function AiQueryVolumeChart() {
   );
 }
 
-export function HourlyQueryDistributionChart() {
+export function HourlyQueryDistributionChart({
+  data,
+}: {
+  data: Array<{ time: string; queries: number }>;
+}) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart
-        data={hourlyData}
+        data={data}
         margin={{ top: 6, right: 18, left: -8, bottom: 0 }}
       >
         <CartesianGrid stroke="#edf0f4" strokeDasharray="3 3" vertical />
         <XAxis
-          dataKey="hour"
+          dataKey="time"
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 9, fill: "#7a8493" }}
@@ -174,8 +155,7 @@ export function HourlyQueryDistributionChart() {
           axisLine={false}
           tickLine={false}
           tick={{ fontSize: 9, fill: "#7a8493" }}
-          domain={[0, 1800]}
-          ticks={[0, 400, 800, 1200, 1600]}
+          domain={[0, "auto"]}
           width={42}
         />
         <Tooltip
@@ -183,7 +163,6 @@ export function HourlyQueryDistributionChart() {
           contentStyle={tooltipStyle}
           formatter={(value) => {
             const count = typeof value === "number" ? value : Number(value);
-
             return [count.toLocaleString(), "Queries"];
           }}
         />

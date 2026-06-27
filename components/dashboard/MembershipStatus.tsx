@@ -2,19 +2,27 @@
 
 import React, { useState } from "react";
 import { Crown } from "lucide-react";
+import { useCancelSubscriptionMutation } from "@/lib/authApi";
+import toast from "react-hot-toast";
 
 export default function MembershipStatus() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [subscriptionCancelled, setSubscriptionCancelled] = useState(false);
+  const [cancelSubscription] = useCancelSubscriptionMutation();
 
-  const handleCancelSubscription = () => {
+  const handleCancelSubscription = async () => {
     setIsCancelling(true);
-    setTimeout(() => {
-      setIsCancelling(false);
+    try {
+      const res = await cancelSubscription().unwrap();
+      toast.success(res?.message || "Subscription cancelled successfully.");
       setShowCancelModal(false);
       setSubscriptionCancelled(true);
-    }, 1500);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to cancel subscription.");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (

@@ -180,6 +180,24 @@ export interface UserNotificationResponse {
   results: UserNotification[];
 }
 
+export interface AdvancedAnalyticsSummaryItem {
+  value: string;
+  trend: string;
+  is_positive: boolean;
+}
+
+export interface AdvancedAnalytics {
+  summary: {
+    total_revenue: AdvancedAnalyticsSummaryItem;
+    user_growth: AdvancedAnalyticsSummaryItem;
+    ai_queries: AdvancedAnalyticsSummaryItem;
+    churn_rate: AdvancedAnalyticsSummaryItem;
+  };
+  revenue_user_growth_chart: Array<{ month: string; revenue: number }>;
+  ai_query_volume_chart: Array<{ month: string; queries: number }>;
+  hourly_query_distribution: Array<{ time: string; queries: number }>;
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -562,7 +580,7 @@ export const authApi = createApi({
     }),
     updatePlan: builder.mutation<Plan, { id: number; body: Partial<Plan> }>({
       query: ({ id, body }) => ({
-        url: `/api/plan-detail/${id}/`,
+        url: `/api/plan-detail-update/${id}/`,
         method: "PATCH",
         body,
       }),
@@ -582,6 +600,18 @@ export const authApi = createApi({
       query: () => ({
         url: "/api/admin-dashboard-stats/",
         method: "GET",
+      }),
+    }),
+    getAdvancedAnalytics: builder.query<AdvancedAnalytics, void>({
+      query: () => ({
+        url: "/api/advanced-analytics/",
+        method: "GET",
+      }),
+    }),
+    cancelSubscription: builder.mutation<{ success: boolean; message: string }, void>({
+      query: () => ({
+        url: "/api/cancel-subscription/",
+        method: "POST",
       }),
     }),
   }),
@@ -635,4 +665,6 @@ export const {
   useCreateCheckoutSessionMutation,
   useGetAdminDashboardStatsQuery,
   useUpdatePlanMutation,
+  useCancelSubscriptionMutation,
+  useGetAdvancedAnalyticsQuery,
 } = authApi;

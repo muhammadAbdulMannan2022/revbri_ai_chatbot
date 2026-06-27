@@ -4,9 +4,11 @@ import dynamic from "next/dynamic";
 import {
   Bot,
   DollarSign,
+  Loader2,
   TrendingDown,
   Users,
 } from "lucide-react";
+import { useGetAdvancedAnalyticsQuery } from "@/lib/authApi";
 
 const RevenueUserGrowthChart = dynamic(
   () =>
@@ -41,81 +43,24 @@ const HourlyQueryDistributionChart = dynamic(
   },
 );
 
-const performanceCards = [
-  {
-    label: "Total Revenue (MRR)",
-    value: "$328K",
-    change: "12.3%",
-    trend: "up",
-    icon: DollarSign,
-    accent: "text-[#16a34a]",
-    bg: "bg-[#eafaf1]",
-  },
-  {
-    label: "User Growth",
-    value: "9,090",
-    change: "8.2%",
-    trend: "up",
-    icon: Users,
-    accent: "text-[#2563eb]",
-    bg: "bg-[#eef4ff]",
-  },
-  {
-    label: "AI Queries (MQ)",
-    value: "373K",
-    change: "21.2%",
-    trend: "up",
-    icon: Bot,
-    accent: "text-[#8b5cf6]",
-    bg: "bg-[#f4efff]",
-  },
-  {
-    label: "Churn Rate",
-    value: "4.3%",
-    change: "5.7%",
-    trend: "down",
-    icon: TrendingDown,
-    accent: "text-[#ef5b5e]",
-    bg: "bg-[#fff1f1]",
-  },
+const summaryCards = [
+  { key: "total_revenue" as const, label: "Total Revenue (MRR)", icon: DollarSign, bg: "bg-[#eafaf1]", accent: "text-[#16a34a]" },
+  { key: "user_growth" as const, label: "User Growth", icon: Users, bg: "bg-[#eef4ff]", accent: "text-[#2563eb]" },
+  { key: "ai_queries" as const, label: "AI Queries (MQ)", icon: Bot, bg: "bg-[#f4efff]", accent: "text-[#8b5cf6]" },
+  { key: "churn_rate" as const, label: "Churn Rate", icon: TrendingDown, bg: "bg-[#fff1f1]", accent: "text-[#ef5b5e]" },
 ];
-
-const cohorts = [
-  {
-    cohort: "Jan 2026",
-    week0: "49/136",
-    week1: "49/136",
-    week2: "48/136",
-    week3: "47/136",
-    week4: "49/136",
-  },
-  {
-    cohort: "Feb 2026",
-    week0: "48/136",
-    week1: "48/136",
-    week2: "49/136",
-    week3: "49/136",
-    week4: "49/136",
-  },
-  {
-    cohort: "Mar 2026",
-    week0: "49/136",
-    week1: "48/136",
-    week2: "49/136",
-    week3: "49/136",
-    week4: "49/136",
-  },
-];
-
-const cohortColumns = [
-  { key: "week0", label: "Week 0" },
-  { key: "week1", label: "Week 1" },
-  { key: "week2", label: "Week 2" },
-  { key: "week3", label: "Week 3" },
-  { key: "week4", label: "Week 4" },
-] as const;
 
 export default function AnalyticsPage() {
+  const { data: analytics, isLoading } = useGetAdvancedAnalyticsQuery();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center bg-slate-50/50">
+        <Loader2 size={32} className="animate-spin text-[#ef5b5e]" />
+      </div>
+    );
+  }
+
   return (
     <>
       <section>
@@ -133,13 +78,14 @@ export default function AnalyticsPage() {
         </p>
 
         <div className="mt-[13px] grid gap-[16px] md:grid-cols-2 xl:grid-cols-4">
-          {performanceCards.map((card) => {
+          {summaryCards.map((card) => {
+            const item = analytics?.summary?.[card.key];
             const Icon = card.icon;
-            const trendIsUp = card.trend === "up";
+            const trendIsUp = item?.is_positive ?? true;
 
             return (
               <article
-                key={card.label}
+                key={card.key}
                 className="flex h-[111px] items-center justify-between rounded-[9px] border border-[#d9e0e8] bg-white px-[19px] shadow-[0_1px_2px_rgba(15,23,42,0.05)]"
               >
                 <div>
@@ -152,7 +98,7 @@ export default function AnalyticsPage() {
                     {card.label}
                   </p>
                   <p className="mt-[3px] text-[20px] font-extrabold leading-none text-[#111827]">
-                    {card.value}
+                    {item?.value ?? "—"}
                   </p>
                 </div>
 
@@ -161,7 +107,7 @@ export default function AnalyticsPage() {
                     trendIsUp ? "text-[#16a34a]" : "text-[#ef4444]"
                   }`}
                 >
-                  {trendIsUp ? "+" : "-"} {card.change}
+                  {item?.trend ?? "—"}
                 </div>
               </article>
             );
@@ -176,7 +122,7 @@ export default function AnalyticsPage() {
           </h2>
 
           <div className="mt-[18px] h-[197px]">
-            <RevenueUserGrowthChart />
+            <RevenueUserGrowthChart data={analytics?.revenue_user_growth_chart ?? []} />
           </div>
 
           <div className="flex justify-center text-[9px] font-medium text-[#ef5b5e]">
@@ -191,7 +137,7 @@ export default function AnalyticsPage() {
           </h2>
 
           <div className="mt-[18px] h-[213px]">
-            <AiQueryVolumeChart />
+            <AiQueryVolumeChart data={analytics?.ai_query_volume_chart ?? []} />
           </div>
         </article>
       </section>
@@ -203,7 +149,7 @@ export default function AnalyticsPage() {
         <p className="mt-[4px] text-[9px] text-[#7a8493]">Today</p>
 
         <div className="mt-[10px] h-[210px]">
-          <HourlyQueryDistributionChart />
+          <HourlyQueryDistributionChart data={analytics?.hourly_query_distribution ?? []} />
         </div>
       </section>
 
@@ -217,49 +163,21 @@ export default function AnalyticsPage() {
             <thead>
               <tr className="bg-[#fafbfc] text-[9px] uppercase text-[#6d7480]">
                 <th className="px-[18px] py-[13px] font-extrabold">Cohort</th>
-                {cohortColumns.map((column) => (
-                  <th
-                    key={column.key}
-                    className="px-[18px] py-[13px] text-center font-extrabold"
-                  >
-                    {column.label}
-                  </th>
-                ))}
+                <th className="px-[18px] py-[13px] text-center font-extrabold">Week 0</th>
+                <th className="px-[18px] py-[13px] text-center font-extrabold">Week 1</th>
+                <th className="px-[18px] py-[13px] text-center font-extrabold">Week 2</th>
+                <th className="px-[18px] py-[13px] text-center font-extrabold">Week 3</th>
+                <th className="px-[18px] py-[13px] text-center font-extrabold">Week 4</th>
               </tr>
             </thead>
             <tbody>
-              {cohorts.map((cohort) => (
-                <tr
-                  key={cohort.cohort}
-                  className="border-b border-[#edf0f4] text-[10px] last:border-b-0"
-                >
-                  <td className="px-[18px] py-[12px] font-extrabold text-[#172033]">
-                    {cohort.cohort}
-                  </td>
-                  {cohortColumns.map((column, index) => {
-                    const lowCell =
-                      (cohort.cohort === "Jan 2026" && index === 3) ||
-                      (cohort.cohort === "Feb 2026" && index === 0);
-
-                    return (
-                      <td
-                        key={column.key}
-                        className="px-[18px] py-[12px] text-center"
-                      >
-                        <span
-                          className={`inline-flex min-w-[86px] justify-center rounded-[4px] px-[12px] py-[5px] font-extrabold ${
-                            lowCell
-                              ? "bg-[#fee2e2] text-[#ef5b5e]"
-                              : "bg-[#dcfce7] text-[#128443]"
-                          }`}
-                        >
-                          {cohort[column.key]}
-                        </span>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              <tr className="border-b border-[#edf0f4] text-[10px] last:border-b-0">
+                <td className="px-[18px] py-[12px] font-extrabold text-[#172033]" colSpan={6}>
+                  <div className="flex items-center justify-center py-6 text-[#7a8493]">
+                    Cohort data not available from API
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
