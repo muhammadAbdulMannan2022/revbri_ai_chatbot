@@ -2,13 +2,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import logo from "@/assets/main/logo.png";
-import { 
-  FaFacebookF, 
-  FaXTwitter, 
-  FaLinkedinIn, 
-  FaInstagram, 
-  FaYoutube, 
-  FaEnvelope 
+import {
+  FaFacebookF,
+  FaXTwitter,
+  FaLinkedinIn,
+  FaInstagram,
+  FaYoutube,
+  FaEnvelope,
 } from "react-icons/fa6";
 
 export default function HomeFooter() {
@@ -46,12 +46,36 @@ export default function HomeFooter() {
   ];
 
   const socialLinks = [
-    { icon: <FaFacebookF size={16} />, href: "https://facebook.com", label: "Facebook" },
-    { icon: <FaXTwitter size={16} />, href: "https://twitter.com", label: "X (Twitter)" },
-    { icon: <FaLinkedinIn size={16} />, href: "https://linkedin.com", label: "LinkedIn" },
-    { icon: <FaInstagram size={16} />, href: "https://instagram.com", label: "Instagram" },
-    { icon: <FaYoutube size={16} />, href: "https://youtube.com", label: "YouTube" },
-    { icon: <FaEnvelope size={16} />, href: "mailto:Admin@iRunBMC.com", label: "Email" },
+    {
+      icon: <FaFacebookF size={16} />,
+      href: "https://facebook.com",
+      label: "Facebook",
+    },
+    {
+      icon: <FaXTwitter size={16} />,
+      href: "https://twitter.com",
+      label: "X (Twitter)",
+    },
+    {
+      icon: <FaLinkedinIn size={16} />,
+      href: "https://linkedin.com",
+      label: "LinkedIn",
+    },
+    {
+      icon: <FaInstagram size={16} />,
+      href: "https://instagram.com",
+      label: "Instagram",
+    },
+    {
+      icon: <FaYoutube size={16} />,
+      href: "https://youtube.com",
+      label: "YouTube",
+    },
+    {
+      icon: <FaEnvelope size={16} />,
+      href: "mailto:Admin@iRunBMC.com",
+      label: "Email",
+    },
   ];
 
   return (
@@ -59,27 +83,20 @@ export default function HomeFooter() {
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
         {/* Main Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
-          
           {/* Logo & Contact details */}
           <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
-            <div className="flex h-12 w-auto items-center justify-center">
-              <Image
-                src="/images/logo.png"
-                alt="BCL Logo"
-                width={48}
-                height={48}
-                className="object-contain"
-              />
+              <div className="flex h-12 w-auto items-center justify-center">
+                <Image
+                  src={logo}
+                  alt="BCL Logo"
+                  width={108}
+                  height={48}
+                  className="object-contain"
+                />
+              </div>
             </div>
-            <div>
-              {/* Fixed the text-[10] error to text-[10px] */}
-              <p className="text-[10px] font-normal uppercase tracking-wider text-[#99A1AF]">
-                Black Church Leader
-              </p>
-            </div>
-          </div>
-            
+
             <div className="flex flex-col gap-1 text-sm text-gray-400">
               <p className="font-semibold text-gray-300">(972) 532-3207</p>
               <p>Dallas, Texas</p>
@@ -89,8 +106,8 @@ export default function HomeFooter() {
             </div>
 
             <div className="mt-2">
-              <Link 
-                href="/privacy-policy" 
+              <Link
+                href="/privacy-policy"
                 className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors duration-200"
               >
                 <span>&gt;</span> Privacy Policy
@@ -107,18 +124,20 @@ export default function HomeFooter() {
               <ul className="flex flex-col gap-3">
                 {section.links.map((link, lIdx) => (
                   <li key={lIdx}>
-                    <Link 
+                    <Link
                       href={link.href}
                       className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white hover:translate-x-0.5 transition-all duration-200"
                     >
-                      <span className="text-xs text-gray-500 font-bold">&gt;</span> {link.label}
+                      <span className="text-xs text-gray-500 font-bold">
+                        &gt;
+                      </span>{" "}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
-
         </div>
 
         {/* Bottom Bar Divider */}
@@ -127,7 +146,7 @@ export default function HomeFooter() {
         {/* Bottom Bar Container */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-gray-500">
           <p>© {currentYear} by Black Millennial Cafe. All Rights Reserved.</p>
-          
+
           <div className="flex items-center gap-4">
             {socialLinks.map((social, idx) => (
               <a
@@ -143,7 +162,6 @@ export default function HomeFooter() {
             ))}
           </div>
         </div>
-
       </div>
     </footer>
   );

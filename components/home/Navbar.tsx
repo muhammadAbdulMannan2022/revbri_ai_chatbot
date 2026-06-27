@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import logo from "@/assets/main/logo.png";
 
 export default function HomeNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,23 +16,16 @@ export default function HomeNavbar() {
       {/* Main Navbar */}
       <div className="bg-[#000000F2] text-white border-b border-white/5 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          
           {/* Logo Section */}
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-auto items-center justify-center">
               <Image
-                src="/images/logo.png"
+                src={logo}
                 alt="BCL Logo"
-                width={48}
+                width={108}
                 height={48}
                 className="object-contain"
               />
-            </div>
-            <div>
-              {/* Fixed the text-[10] error to text-[10px] */}
-              <p className="text-[10px] font-normal uppercase tracking-wider text-[#99A1AF]">
-                Black Church Leader
-              </p>
             </div>
           </div>
 
@@ -61,7 +55,11 @@ export default function HomeNavbar() {
               aria-expanded={isOpen}
             >
               <span className="sr-only">Open main menu</span>
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>

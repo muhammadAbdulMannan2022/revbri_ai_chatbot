@@ -1,7 +1,11 @@
+"use client";
+
 import React from "react";
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function HeroSection() {
+  const router = useRouter();
   const stats = [
     { value: "500+", label: "Churches Served" },
     { value: "50K+", label: "Leaders Equipped" },
@@ -64,7 +68,10 @@ export default function HeroSection() {
 
           {/* Interactive Call to Action Button */}
           <div className="pt-4">
-            <button className="bg-[#E86161] hover:bg-[#DC4F4F] text-white font-bold text-[16px] font-inter cursor-pointer py-4 px-8 rounded-xl flex items-center gap-3 transition-all duration-300 transform hover:translate-x-1 active:scale-95 shadow-xl shadow-red-950/40">
+            <button
+              onClick={() => router.push("/auth/register")}
+              className="bg-[#E86161] hover:bg-[#DC4F4F] text-white font-bold text-[16px] font-inter cursor-pointer py-4 px-8 rounded-xl flex items-center gap-3 transition-all duration-300 transform hover:translate-x-1 active:scale-95 shadow-xl shadow-red-950/40"
+            >
               Start Free
               <ArrowRight className="w-4 h-4 text-white" />
             </button>
