@@ -201,7 +201,7 @@ export interface AdvancedAnalytics {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://por-thesis-van-principle.trycloudflare.com",
+    baseUrl: "https://dvd-justice-eight-porcelain.trycloudflare.com",
     prepareHeaders: (headers, { getState }) => {
       // 1. Bypass the ngrok warning page
       headers.set("ngrok-skip-browser-warning", "true");
@@ -608,7 +608,10 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-    cancelSubscription: builder.mutation<{ success: boolean; message: string }, void>({
+    cancelSubscription: builder.mutation<
+      { success: boolean; message: string },
+      void
+    >({
       query: () => ({
         url: "/api/cancel-subscription/",
         method: "POST",
