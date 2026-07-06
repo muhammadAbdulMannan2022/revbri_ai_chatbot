@@ -201,7 +201,7 @@ export interface AdvancedAnalytics {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://utils-agreement-radiation-miami.trycloudflare.com",
+    baseUrl: "https://applied-valium-wallpapers-sim.trycloudflare.com",
     prepareHeaders: (headers, { getState }) => {
       // 1. Bypass the ngrok warning page
       headers.set("ngrok-skip-browser-warning", "true");

@@ -50,7 +50,7 @@ function NotificationsContent() {
     try {
       const proto = window.location.protocol === "https:" ? "wss" : "ws";
       ws = new WebSocket(
-        `${proto}://39c4-103-186-20-8.ngrok-free.app/ws/notifications/?token=${token}`,
+        `${proto}://applied-valium-wallpapers-sim.trycloudflare.com/ws/notifications/?token=${token}`,
       );
 
       ws.onmessage = (event) => {
@@ -73,13 +73,19 @@ function NotificationsContent() {
         }
       };
 
-      ws.onerror = () => { /* silently ignore */ };
+      ws.onerror = () => {
+        /* silently ignore */
+      };
     } catch {
       /* WebSocket constructor failed — ignore, REST data still shows */
     }
 
     return () => {
-      try { ws?.close(); } catch { /* ignore */ }
+      try {
+        ws?.close();
+      } catch {
+        /* ignore */
+      }
     };
   }, [refetch]);
 
