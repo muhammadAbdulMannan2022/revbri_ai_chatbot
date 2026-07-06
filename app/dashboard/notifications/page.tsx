@@ -50,7 +50,7 @@ function NotificationsContent() {
     try {
       const proto = window.location.protocol === "https:" ? "wss" : "ws";
       ws = new WebSocket(
-        `${proto}://applied-valium-wallpapers-sim.trycloudflare.com/ws/notifications/?token=${token}`,
+        `${proto}://hobby-some-voted-competitive.trycloudflare.com/ws/notifications/?token=${token}`,
       );
 
       ws.onmessage = (event) => {
