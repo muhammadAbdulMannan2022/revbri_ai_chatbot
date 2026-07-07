@@ -8,16 +8,13 @@ import {
   MessageSquare,
   ShoppingBag,
 } from "lucide-react";
-import type { ChatMessage, ChatProductResponse } from "@/lib/authApi";
+import type { ChatMessage, ChatAiResponse, ChatProduct } from "@/lib/authApi";
+import { rewriteMediaUrl } from "@/lib/authApi";
 import Markdown from "react-markdown";
 
 // ─── Type guards ──────────────────────────────────────────────────────────────
-function isProductResponse(v: unknown): v is ChatProductResponse {
-  return typeof v === "object" && v !== null && "results" in v;
-}
-
-function isErrorResponse(v: unknown): v is { error: string; source?: string } {
-  return typeof v === "object" && v !== null && "error" in v;
+function isProductSearch(v: ChatAiResponse): boolean {
+  return v.intent === "product_search" && Array.isArray(v.results);
 }
 
 // ─── Thinking bubble shown while AI is generating ────────────────────────────
@@ -44,7 +41,7 @@ function ThinkingBubble() {
 function ProductCard({
   product,
 }: {
-  product: ChatProductResponse["results"][number];
+  product: ChatProduct;
 }) {
   return (
     <a
@@ -58,7 +55,7 @@ function ProductCard({
         {product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.image}
+            src={rewriteMediaUrl(product.image)}
             alt={product.name}
             className="h-full w-full object-cover transition group-hover:scale-105"
           />
@@ -94,30 +91,15 @@ function ProductCard({
 function AIBubble({
   response,
 }: {
-  response: string | ChatProductResponse | { error: string; source?: string };
+  response: ChatAiResponse | "…";
 }) {
   const isThinking = response === "…";
 
   if (isThinking) return <ThinkingBubble />;
 
-  // Backend returned an error object (e.g. OpenAI quota exceeded)
-  if (isErrorResponse(response)) {
-    return (
-      <div className="flex justify-start">
-        <div className="flex items-end gap-2 max-w-[80%]">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ef5b5e] to-[#ff8a70] shadow-sm">
-            <Bot size={14} className="text-white" strokeWidth={2} />
-          </div>
-          <div className="rounded-2xl rounded-bl-sm border border-red-100 bg-red-50 px-4 py-3 text-[13px] leading-relaxed text-red-600 shadow-sm">
-            ⚠️ The AI couldn&apos;t respond right now. Please try again later.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isProductResponse(response)) {
-    const { query, results } = response;
+  // Product search response
+  if (isProductSearch(response)) {
+    const { answer, results = [] } = response;
     return (
       <div className="flex justify-start">
         <div className="flex items-end gap-2 max-w-[90%] w-full">
@@ -125,26 +107,12 @@ function AIBubble({
             <Bot size={14} className="text-white" strokeWidth={2} />
           </div>
           <div className="flex flex-col gap-2 w-full">
-            {/* Query echo */}
+            {/* AI answer text */}
             <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-[13px] text-[#374151] shadow-sm">
               {results.length === 0 ? (
-                <p>
-                  I searched for{" "}
-                  <span className="font-semibold text-[#ef5b5e]">
-                    &ldquo;{query}&rdquo;
-                  </span>{" "}
-                  but couldn&apos;t find any matching products. Try adjusting
-                  your query!
-                </p>
+                <p>I couldn&apos;t find any matching products. Try adjusting your query!</p>
               ) : (
-                <p>
-                  Here are{" "}
-                  <span className="font-semibold text-[#ef5b5e]">
-                    {results.length} product{results.length !== 1 ? "s" : ""}
-                  </span>{" "}
-                  matching{" "}
-                  <span className="font-semibold">&ldquo;{query}&rdquo;</span>:
-                </p>
+                <Markdown>{answer}</Markdown>
               )}
             </div>
             {/* Product grid */}
@@ -161,7 +129,7 @@ function AIBubble({
     );
   }
 
-  // Plain text response
+  // General / knowledge response
   return (
     <div className="flex justify-start">
       <div className="flex items-end gap-2 max-w-[80%]">
@@ -169,7 +137,7 @@ function AIBubble({
           <Bot size={14} className="text-white" strokeWidth={2} />
         </div>
         <div className="rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-[13px] leading-relaxed text-[#374151] shadow-sm whitespace-pre-wrap">
-          <Markdown>{response}</Markdown>
+          <Markdown>{response.answer}</Markdown>
         </div>
       </div>
     </div>

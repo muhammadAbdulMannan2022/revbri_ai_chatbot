@@ -82,6 +82,29 @@ export interface ChatProduct {
   price?: string;
 }
 
+export interface ChatAiSource {
+  name: string;
+  score: number;
+}
+
+/**
+ * Unified AI response object returned by the backend.
+ * - General questions: { query, answer, source, intent, sources?, chunks_used? }
+ * - Product search:    { query, answer, source, intent, results }
+ */
+export interface ChatAiResponse {
+  query: string;
+  answer: string;
+  source: string;
+  intent: string;
+  /** Present when intent === 'product_search' */
+  results?: ChatProduct[];
+  /** Present for pdf_knowledge responses */
+  sources?: ChatAiSource[];
+  chunks_used?: number;
+}
+
+/** @deprecated Use ChatAiResponse instead */
 export interface ChatProductResponse {
   query: string;
   results: ChatProduct[];
@@ -92,8 +115,8 @@ export interface ChatMessage {
   room: number;
   sender: number;
   message: string;
-  // ai_response is a plain string OR a product-search object
-  ai_response: string | ChatProductResponse;
+  /** ai_response is the unified AI response object, or '…' for the thinking indicator */
+  ai_response: ChatAiResponse | "…";
   created_at: string;
 }
 
@@ -198,10 +221,30 @@ export interface AdvancedAnalytics {
   hourly_query_distribution: Array<{ time: string; queries: number }>;
 }
 
+/** Cloudflare tunnel origin — single source of truth */
+export const CF_BASE_URL =
+  "https://hobby-some-voted-competitive.trycloudflare.com";
+
+/**
+ * Replace any localhost / 127.0.0.1 origin that the backend embeds in media
+ * URLs (e.g. product images) with the live Cloudflare tunnel URL.
+ *
+ * Matches:  http://127.0.0.1:<port>  or  http://localhost:<port>
+ * Example:  http://127.0.0.1:3535/media/products/img.png
+ *        →  https://hobby-some-voted-competitive.trycloudflare.com/media/products/img.png
+ */
+export function rewriteMediaUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  return url.replace(
+    /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/,
+    CF_BASE_URL,
+  );
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://hobby-some-voted-competitive.trycloudflare.com",
+    baseUrl: CF_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
       // 1. Bypass the ngrok warning page
       headers.set("ngrok-skip-browser-warning", "true");
@@ -396,11 +439,7 @@ export const authApi = createApi({
       ],
     }),
     sendMessage: builder.mutation<
-      {
-        message: ChatMessage;
-        ai_response: string | ChatProductResponse;
-        result: string | ChatProductResponse;
-      },
+      { message: ChatMessage },
       { room?: number; message: string }
     >({
       query: (body) => ({

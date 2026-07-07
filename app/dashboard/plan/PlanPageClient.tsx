@@ -171,7 +171,7 @@ export default function PlanPageClient() {
           </button>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-6 w-full items-stretch justify-center">
+        <div className="flex flex-wrap gap-3 w-full items-stretch justify-between ">
           {plans
             ?.filter((p) => p.is_active)
             .map((plan, _, activePlans) => {
@@ -179,7 +179,7 @@ export default function PlanPageClient() {
               const isCurrentPlan =
                 currentPlanType === plan.plantype.toLowerCase();
               const isPending = loadingPlanId === plan.id;
-              const widthPercentage = Math.floor(100 / activePlans.length) - 3;
+              const widthPercentage = Math.floor(100 / activePlans.length) - 2;
 
               return (
                 <div

@@ -32,7 +32,7 @@ export default function SidebarChatList() {
     if (!isChatsLoading && chatsData) {
       const raw = Array.isArray(chatsData)
         ? chatsData
-        : (chatsData as any)?.results ?? [];
+        : ((chatsData as any)?.results ?? []);
       setChats(raw);
     }
   }, [chatsData, isChatsLoading]);
@@ -75,7 +75,7 @@ export default function SidebarChatList() {
       {/* Chat Items */}
       <div className="flex-1 space-y-1">
         {chats.length > 0 ? (
-          chats.map((chat) => (
+          [...chats].reverse().map((chat) => (
             <div
               key={chat.id}
               onClick={() => handleSelectChat(chat.id)}
@@ -125,7 +125,9 @@ export default function SidebarChatList() {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">
             <p>No chats available.</p>
-            <p className="mt-1">Click &quot;New chat&quot; to start a conversation!</p>
+            <p className="mt-1">
+              Click &quot;New chat&quot; to start a conversation!
+            </p>
           </div>
         )}
       </div>
