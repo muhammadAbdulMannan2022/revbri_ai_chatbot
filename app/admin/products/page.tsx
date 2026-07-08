@@ -72,15 +72,20 @@ function ProductThumbnail({ variant }: { variant: ThumbnailVariant }) {
 }
 
 export default function ProductsPage() {
-  const { data: apiResponse, isLoading, isError, error } = useGetProductsQuery();
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    error,
+  } = useGetProductsQuery();
   const products: Product[] = apiResponse
     ? Array.isArray(apiResponse)
       ? apiResponse
       : Array.isArray((apiResponse as any).data)
-      ? (apiResponse as any).data
-      : Array.isArray((apiResponse as any).results)
-      ? (apiResponse as any).results
-      : []
+        ? (apiResponse as any).data
+        : Array.isArray((apiResponse as any).results)
+          ? (apiResponse as any).results
+          : []
     : [];
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
   const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
@@ -99,7 +104,7 @@ export default function ProductsPage() {
       formData.append("description", product.description || "");
       formData.append("product_price", product.product_price || "0");
       formData.append("is_published", String(!product.is_published));
-      
+
       await updateProduct({ id: product.id, body: formData }).unwrap();
       toast.success("Product status updated successfully");
     } catch (err) {
@@ -167,7 +172,10 @@ export default function ProductsPage() {
   const formatPrice = (price: string) => {
     const val = parseFloat(price);
     if (isNaN(val)) return price || "$0.00";
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(val);
   };
 
   const formatDate = (dateString: string) => {
@@ -233,7 +241,8 @@ export default function ProductsPage() {
           if (typeof err.data === "string") {
             errMsg = err.data;
           } else if (typeof err.data === "object") {
-            errMsg = err.data.detail || err.data.message || JSON.stringify(err.data);
+            errMsg =
+              err.data.detail || err.data.message || JSON.stringify(err.data);
           }
         } else if (err.message) {
           errMsg = err.message;
@@ -255,7 +264,9 @@ export default function ProductsPage() {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#ef5b5e] border-t-transparent" />
-        <p className="text-[13px] font-medium text-[#4e5b6c]">Loading products...</p>
+        <p className="text-[13px] font-medium text-[#4e5b6c]">
+          Loading products...
+        </p>
       </div>
     );
   }
@@ -263,9 +274,12 @@ export default function ProductsPage() {
   if (isError) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center text-center p-6 bg-white border border-[#d9e0e8] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
-        <div className="text-red-500 text-lg font-bold mb-2">Failed to load products</div>
+        <div className="text-red-500 text-lg font-bold mb-2">
+          Failed to load products
+        </div>
         <p className="text-[12px] text-[#4e5b6c] max-w-md mb-4 font-medium">
-          {getErrorMessage(error) || "Could not retrieve the product catalog from the server."}
+          {getErrorMessage(error) ||
+            "Could not retrieve the product catalog from the server."}
         </p>
         <button
           type="button"
@@ -338,7 +352,10 @@ export default function ProductsPage() {
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-[12px] font-medium text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-[12px] font-medium text-gray-500"
+                  >
                     No products found. Click "Add Product" to create one.
                   </td>
                 </tr>
@@ -358,10 +375,17 @@ export default function ProductsPage() {
                               className="h-[45px] w-[45px] rounded-[3px] object-cover border border-[#e5e7eb] shadow-sm"
                             />
                           ) : (
-                            <ProductThumbnail variant={getThumbnailVariant(product.product_type)} />
+                            <ProductThumbnail
+                              variant={getThumbnailVariant(
+                                product.product_type,
+                              )}
+                            />
                           )}
                         </div>
-                        <span className="font-extrabold truncate max-w-[200px]" title={product.name}>
+                        <span
+                          className="font-extrabold truncate max-w-[200px]"
+                          title={product.name}
+                        >
                           {product.name}
                         </span>
                       </div>
@@ -397,12 +421,16 @@ export default function ProductsPage() {
                           aria-label={`Toggle ${product.name} status`}
                           onClick={() => toggleProductStatus(product)}
                           className={`relative h-[18px] w-[33px] rounded-full transition ${
-                            product.is_published ? "bg-[#ef5b5e]" : "bg-[#cbd5e1]"
+                            product.is_published
+                              ? "bg-[#ef5b5e]"
+                              : "bg-[#cbd5e1]"
                           }`}
                         >
                           <span
                             className={`absolute top-1/2 h-[12px] w-[12px] -translate-y-1/2 rounded-full bg-white shadow-sm transition ${
-                              product.is_published ? "right-[3px]" : "left-[3px]"
+                              product.is_published
+                                ? "right-[3px]"
+                                : "left-[3px]"
                             }`}
                           />
                         </button>
@@ -499,9 +527,9 @@ export default function ProductsPage() {
                   className="mt-[8px] h-[34px] w-full rounded-[6px] border border-[#d9e0e8] bg-white px-[11px] text-[11px] font-medium text-[#1f2937] outline-none transition focus:border-[#ef5b5e] focus:ring-2 focus:ring-[#fee2e2]"
                 >
                   <option value="">Select One</option>
-                  <option value="resource">Resource</option>
-                  <option value="ecommerce">E-commerce</option>
-                  <option value="consultancy">Consultancy</option>
+                  <option value="assesment">Assesment</option>
+                  <option value="resources">Resources</option>
+                  <option value="services">Services</option>
                 </select>
               </label>
 
@@ -562,7 +590,11 @@ export default function ProductsPage() {
                   </div>
                 ) : (
                   <label className="mt-[8px] flex h-[120px] cursor-pointer flex-col items-center justify-center rounded-[6px] border border-dashed border-[#aeb7c4] text-center transition hover:border-[#ef5b5e] hover:bg-[#fff7f7]">
-                    <Upload className="text-[#98a2b3]" size={28} strokeWidth={2} />
+                    <Upload
+                      className="text-[#98a2b3]"
+                      size={28}
+                      strokeWidth={2}
+                    />
                     <span className="mt-[12px] text-[10px] text-[#4b5563]">
                       Click to upload or drag and drop
                     </span>
@@ -644,5 +676,3 @@ export default function ProductsPage() {
     </>
   );
 }
-
-
