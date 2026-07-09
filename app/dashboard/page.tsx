@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import MessageBox from "@/components/dashboard/MessageInput";
 import MessageDisplay from "@/components/dashboard/MessageDisplay";
@@ -20,9 +20,16 @@ function ChatPage() {
   // Optimistic messages shown while waiting for the server round-trip
   const [optimisticMessages, setOptimisticMessages] = useState<ChatMessage[]>([]);
 
-  const { data: history = [], isLoading } = useGetChatHistoryQuery(roomId!, {
+  // Clear optimistic messages on room change
+  useEffect(() => {
+    setOptimisticMessages([]);
+  }, [roomId]);
+
+  const { data: historyData, isLoading } = useGetChatHistoryQuery(roomId!, {
     skip: roomId === null,
   });
+
+  const history = roomId === null ? [] : (historyData ?? []);
 
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
 

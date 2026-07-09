@@ -16,11 +16,21 @@ export default function MessageBox({
   onSend: Function;
   disabled?: boolean;
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 92)}px`;
+    }
+  }, [message]);
+
   const handleSend = () => {
     onSend();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -76,15 +86,16 @@ export default function MessageBox({
           ))}
         </div>
       )}
-      <div className="w-full max-w-4xl bg-white rounded-full shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-200 mx-3">
+      <div className="w-full max-w-4xl bg-white rounded-[24px] md:rounded-[32px] shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-200 mx-3">
         {/* Input */}
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="Start chat"
-          className="flex-1 py-3 md:py-2 ps-4 rounded-full outline-none text-gray-800 placeholder-gray-400 text-sm md:text-base min-w-0 bg-[#EFF2F6] md:min-w-100"
+          rows={1}
+          className="flex-1 py-3 md:py-2.5 ps-4 pr-4 rounded-[20px] outline-none text-gray-800 placeholder-gray-400 text-sm md:text-base min-w-0 bg-[#EFF2F6] md:min-w-100 resize-none overflow-y-auto hide-scrollbar"
         />
 
         {/* Voice Button */}
