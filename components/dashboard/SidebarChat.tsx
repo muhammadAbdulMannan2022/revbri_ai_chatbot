@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetChatsQuery } from "@/lib/authApi";
+import { useGetChatsQuery, useDeleteChatRoomMutation } from "@/lib/authApi";
 import { MoreVertical, SquarePen, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,6 +20,7 @@ export default function SidebarChatList() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [actionOpenId, setActionOpenId] = useState<number | null>(null);
   const { data: chatsData, isLoading: isChatsLoading } = useGetChatsQuery();
+  const [deleteChatRoom, { isLoading: isDeleting }] = useDeleteChatRoomMutation();
 
   // Close action dropdown on outside click
   useEffect(() => {
@@ -47,12 +48,18 @@ export default function SidebarChatList() {
     router.push("/dashboard");
   };
 
-  const handleDelete = (e: React.MouseEvent, id: number) => {
+  const handleDelete = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    setChats((prev) => prev.filter((c) => c.id !== id));
     setActionOpenId(null);
-    if (activeId === id) router.push("/dashboard");
+    try {
+      await deleteChatRoom(id).unwrap();
+      // Navigate away if the deleted room was the active one
+      if (activeId === id) router.push("/dashboard");
+    } catch {
+      // Silently ignore — the cache will stay intact on failure
+    }
   };
+
 
   return (
     <div suppressHydrationWarning className="w-full bg-white flex flex-col">
@@ -110,10 +117,11 @@ export default function SidebarChatList() {
                     >
                       <button
                         onClick={(e) => handleDelete(e, chat.id)}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 transition-colors"
+                        disabled={isDeleting}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 size={14} />
-                        <span>Delete chat</span>
+                        <span>{isDeleting ? "Deleting…" : "Delete chat"}</span>
                       </button>
                     </div>
                     <span className="w-4 h-5 bg-white absolute rotate-45 top-[110%] right-2 border border-gray-300" />

@@ -273,6 +273,7 @@ export const authApi = createApi({
     "AiSettings",
     "UserNotification",
     "Plan",
+    "Chats",
   ],
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -428,6 +429,14 @@ export const authApi = createApi({
         url: "/api/chat-rooms-list/",
         method: "GET",
       }),
+      providesTags: ["Chats"],
+    }),
+    deleteChatRoom: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/delete-chat-room/${id}/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Chats"],
     }),
     getChatHistory: builder.query<ChatMessage[], number>({
       query: (roomId) => ({
@@ -681,6 +690,7 @@ export const {
   useGetUsersQuery,
   // chats
   useGetChatsQuery,
+  useDeleteChatRoomMutation,
   useGetChatHistoryQuery,
   useSendMessageMutation,
   useGetKnowledgePdfsQuery,
