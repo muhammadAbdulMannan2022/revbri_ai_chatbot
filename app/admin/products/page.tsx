@@ -527,8 +527,8 @@ export default function ProductsPage() {
                   className="mt-[8px] h-[34px] w-full rounded-[6px] border border-[#d9e0e8] bg-white px-[11px] text-[11px] font-medium text-[#1f2937] outline-none transition focus:border-[#ef5b5e] focus:ring-2 focus:ring-[#fee2e2]"
                 >
                   <option value="">Select One</option>
-                  <option value="assesment">Assesment</option>
-                  <option value="resources">Resources</option>
+                  <option value="assessment">Assessment</option>
+                  <option value="resource">Resource</option>
                   <option value="services">Services</option>
                 </select>
               </label>
