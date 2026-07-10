@@ -474,7 +474,7 @@ export default function ProductsPage() {
         >
           <form
             onSubmit={submitProductForm}
-            className="relative max-h-[calc(100vh_-_24px)] w-full max-w-[520px] overflow-y-auto rounded-[8px] bg-white shadow-[0_18px_44px_rgba(0,0,0,0.22)]"
+            className="relative max-h-[calc(100vh-24px)] w-full max-w-[520px] overflow-y-auto rounded-[8px] bg-white shadow-[0_18px_44px_rgba(0,0,0,0.22)]"
           >
             <div className="flex items-center justify-between border-b border-[#edf0f4] px-[18px] py-[18px]">
               <h2
