@@ -223,7 +223,7 @@ export interface AdvancedAnalytics {
 
 /** Cloudflare tunnel origin — single source of truth */
 export const CF_BASE_URL =
-  "https://hobby-some-voted-competitive.trycloudflare.com";
+  "https://balance-passed-hitachi-ribbon.trycloudflare.com";
 
 /**
  * Replace any localhost / 127.0.0.1 origin that the backend embeds in media
