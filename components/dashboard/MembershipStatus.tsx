@@ -66,7 +66,10 @@ export default function MembershipStatus() {
     return null;
   };
 
-  const validTill = currentPlan?.next_billing_date || currentPlan?.expire_date || getFallbackDate();
+  const validTill =
+    currentPlan?.next_billing_date ||
+    currentPlan?.expire_date ||
+    getFallbackDate();
 
   return (
     <>
@@ -160,6 +163,7 @@ export default function MembershipStatus() {
                 onClick={handleCancelSubscription}
                 className="flex-1 py-3 px-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-sm transition-all duration-200 cursor-pointer active:scale-98 shadow-md shadow-rose-200 flex items-center justify-center gap-2 font-sans"
               >
+                {/* force redeploy */}
                 {isCancelling ? (
                   <>
                     <svg
