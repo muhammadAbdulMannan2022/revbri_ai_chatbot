@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, Lock, Upload, X } from "lucide-react";
 import {
+  useGetOverviewInfoQuery,
   useGetProfileQuery,
   useResetPasswordMutation,
   useUpdateProfileMutation,
@@ -14,6 +15,9 @@ const AccountSettings: React.FC = () => {
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [resetPassword, { isLoading: isResetting }] =
     useResetPasswordMutation();
+
+  const { data: overviewData, isLoading: isOverviewLoading } =
+    useGetOverviewInfoQuery();
 
   const [profileForm, setProfileForm] = useState({
     full_name: "",
@@ -109,7 +113,10 @@ const AccountSettings: React.FC = () => {
     }
 
     try {
-      await resetPassword({ email: profileForm.email, new_password: profileForm.newPassword }).unwrap();
+      await resetPassword({
+        email: profileForm.email,
+        new_password: profileForm.newPassword,
+      }).unwrap();
       setPasswordMessage("Password updated successfully.");
       setProfileForm((prev) => ({
         ...prev,
@@ -253,32 +260,38 @@ const AccountSettings: React.FC = () => {
               <h2 className="text-xl font-semibold mb-4 text-gray-700">
                 Account overview
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-sm text-gray-500">Role</p>
-                  <p className="mt-2 font-semibold text-gray-800">
-                    {data?.data?.role ?? "N/A"}
-                  </p>
+              {isOverviewLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#FF6F6F] border-t-transparent" />
                 </div>
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-sm text-gray-500">Verified</p>
-                  <p className="mt-2 font-semibold text-gray-800">
-                    {data?.data?.is_verified ? "Yes" : "No"}
-                  </p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500">Role</p>
+                    <p className="mt-2 font-semibold text-gray-800">
+                      {overviewData?.data?.role ?? "N/A"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500">Verified</p>
+                    <p className="mt-2 font-semibold text-gray-800">
+                      {overviewData?.data?.verified ?? "No"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500">Plan</p>
+                    <p className="mt-2 font-semibold text-gray-800">
+                      {overviewData?.data?.plan ?? "None"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500">Queries limit</p>
+                    <p className="mt-2 font-semibold text-gray-800">
+                      {overviewData?.data?.queries_limit ?? "—"}
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-sm text-gray-500">Plan</p>
-                  <p className="mt-2 font-semibold text-gray-800">
-                    {data?.data?.pricing_plan?.plan_name ?? "None"}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <p className="text-sm text-gray-500">Queries limit</p>
-                  <p className="mt-2 font-semibold text-gray-800">
-                    {data?.data?.pricing_plan?.ai_query_limit ?? "—"}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
 
             <form

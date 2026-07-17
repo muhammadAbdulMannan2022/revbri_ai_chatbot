@@ -10,6 +10,7 @@ import {
   useGetProfileQuery,
 } from "@/lib/authApi";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 // Helper to format queries/questions count to 10k, 12M, etc.
 const formatLimit = (num: number) => {
@@ -43,22 +44,31 @@ export default function PlanPageClient() {
       const successUrl = `${window.location.origin}/dashboard/success`;
       const cancelUrl = `${window.location.origin}/dashboard/plan`;
 
-      const response = await createCheckoutSession({
+      const response = (await createCheckoutSession({
         plan_id: planId,
         success_url: successUrl,
         cancel_url: cancelUrl,
-      }).unwrap();
+      }).unwrap()) as any;
+
+      if (response?.error) {
+        toast.error(response.error);
+        return;
+      }
+
+      if (response?.success === false && response?.message) {
+        toast.error(response.message);
+        return;
+      }
 
       // Redirect user to Stripe Checkout
-      const url = response.checkout_url || (response as any).data?.checkout_url;
+      const url = response.checkout_url || response.data?.checkout_url;
       if (url) {
         window.location.href = url;
       } else {
         toast.error("Failed to retrieve checkout URL.");
       }
     } catch (err: any) {
-      const errMsg =
-        err?.data?.message || err?.message || "Failed to initiate checkout.";
+      const errMsg = getErrorMessage(err) || "Failed to initiate checkout.";
       toast.error(errMsg);
     } finally {
       setLoadingPlanId(null);
@@ -234,7 +244,7 @@ export default function PlanPageClient() {
                           <div
                             className={`rounded-full p-1 mt-0.5 shrink-0 ${theme.checkBg}`}
                           >
-                            <Check size={14} className="stroke-[3]" />
+                            <Check size={14} className="stroke-3" />
                           </div>
                           <span className="text-sm font-medium text-slate-600 leading-tight">
                             {feature}

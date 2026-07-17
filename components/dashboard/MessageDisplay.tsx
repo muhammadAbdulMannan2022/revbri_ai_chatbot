@@ -97,6 +97,21 @@ function AIBubble({
 
   if (isThinking) return <ThinkingBubble />;
 
+  if (response.intent === "error") {
+    return (
+      <div className="flex justify-start">
+        <div className="flex items-end gap-2 max-w-[80%]">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 shadow-sm border border-red-200">
+            <Bot size={14} className="text-red-500" strokeWidth={2} />
+          </div>
+          <div className="rounded-2xl rounded-bl-sm bg-red-50 border border-red-100 px-4 py-3 text-[13px] leading-relaxed text-red-700 shadow-sm whitespace-pre-wrap">
+            <Markdown>{response.answer}</Markdown>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Product search response
   if (isProductSearch(response)) {
     const { answer, results = [] } = response;

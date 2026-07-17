@@ -6,6 +6,8 @@ import MessageBox from "@/components/dashboard/MessageInput";
 import MessageDisplay from "@/components/dashboard/MessageDisplay";
 import type { ChatMessage } from "@/lib/authApi";
 import { useGetChatHistoryQuery, useSendMessageMutation } from "@/lib/authApi";
+import toast from "react-hot-toast";
+import { getErrorMessage } from "@/lib/errorUtils";
 
 // ─── Inner page — uses useSearchParams, must be inside <Suspense> ─────────────
 function ChatPage() {
@@ -84,9 +86,25 @@ function ChatPage() {
           });
         }
       }
-    } catch {
-      // Remove the optimistic bubble on failure so the user can retry
-      setOptimisticMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } catch (err: any) {
+      const errMsg = getErrorMessage(err) || "Failed to send message.";
+      toast.error(errMsg);
+      // Update the optimistic bubble to show the error response
+      setOptimisticMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId
+            ? {
+                ...m,
+                ai_response: {
+                  query: text,
+                  answer: errMsg,
+                  source: "error",
+                  intent: "error",
+                },
+              }
+            : m
+        )
+      );
     }
   };
 

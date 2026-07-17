@@ -222,8 +222,7 @@ export interface AdvancedAnalytics {
 }
 
 /** Cloudflare tunnel origin — single source of truth */
-export const CF_BASE_URL =
-  "https://wishing-jar-honor-simon.trycloudflare.com";
+export const CF_BASE_URL = "https://wishing-jar-honor-simon.trycloudflare.com";
 
 /**
  * Replace any localhost / 127.0.0.1 origin that the backend embeds in media
@@ -665,6 +664,18 @@ export const authApi = createApi({
         method: "POST",
       }),
     }),
+    getOverviewInfo: builder.query<any, void>({
+      query: () => ({
+        url: "/api/account-overview/",
+        method: "GET",
+      }),
+    }),
+    getUserCurrentPlan: builder.query<any, void>({
+      query: () => ({
+        url: "/api/user-current-plan/",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -719,4 +730,6 @@ export const {
   useUpdatePlanMutation,
   useCancelSubscriptionMutation,
   useGetAdvancedAnalyticsQuery,
+  useGetOverviewInfoQuery,
+  useGetUserCurrentPlanQuery,
 } = authApi;
