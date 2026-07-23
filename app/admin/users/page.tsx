@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
-import { useGetUsersQuery } from "@/lib/authApi";
+import { Download, Loader2, Search } from "lucide-react";
+import toast from "react-hot-toast";
+import { useExportUsersCsvMutation, useGetUsersQuery } from "@/lib/authApi";
 
 // Assuming this is the hook from your RTK Query / data fetching library
 // Adjust the import path as needed for your project
@@ -56,6 +57,29 @@ export default function AdminUsersPage() {
 
   // 1. Fetching data from your custom hook
   const { data: apiUsers, isLoading, isError } = useGetUsersQuery();
+  const [exportUsersCsv, { isLoading: isExporting }] =
+    useExportUsersCsvMutation();
+
+  const handleExportCsv = async () => {
+    try {
+      const blob = await exportUsersCsv().unwrap();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `users-export-${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Users CSV exported successfully!");
+    } catch (err) {
+      toast.error("Failed to export users CSV");
+      console.error("Export CSV error:", err);
+    }
+  };
 
   // 2. Normalizing API data with the exact keys returned by /api/admin-user-list/
   const users = useMemo(() => {
@@ -63,23 +87,28 @@ export default function AdminUsersPage() {
 
     const userList = Array.isArray(apiUsers)
       ? apiUsers
-      : (apiUsers && Array.isArray(apiUsers.results)
+      : apiUsers && Array.isArray(apiUsers.results)
         ? apiUsers.results
-        : (apiUsers && Array.isArray(apiUsers.data)
+        : apiUsers && Array.isArray(apiUsers.data)
           ? apiUsers.data
-          : []));
+          : [];
 
     return userList.map((user: any) => {
       // Normalize package name to capitalization (Free, Core, Builder, Anchor)
       let rawPkg = user.package || "Free";
-      const pkg = rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
-      
+      const pkg =
+        rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
+
       const isPaid = pkg !== "Free";
       const usage = user.usage_level || (isPaid ? "Medium" : "Low");
-      const status = user.status && user.status.toLowerCase() === "active" ? "Active" : "Inactive";
+      const status =
+        user.status && user.status.toLowerCase() === "active"
+          ? "Active"
+          : "Inactive";
 
       // Safely get initials from full_name or email
-      const name = user.full_name || user.email?.split("@")[0] || "Unknown User";
+      const name =
+        user.full_name || user.email?.split("@")[0] || "Unknown User";
 
       return {
         id: user.id,
@@ -146,13 +175,29 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <section>
-        <h1 className="text-[clamp(25px,1.65vw,29px)] font-extrabold leading-tight tracking-normal text-[#151b26]">
-          User Management
-        </h1>
-        <p className="mt-[5px] text-[11px] text-[#4e5b6c]">
-          Manage and monitor all users on your platform
-        </p>
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-[clamp(25px,1.65vw,29px)] font-extrabold leading-tight tracking-normal text-[#151b26]">
+            User Management
+          </h1>
+          <p className="mt-[5px] text-[11px] text-[#4e5b6c]">
+            Manage and monitor all users on your platform
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={isExporting}
+          className="flex h-[39px] hover:cursor-pointer items-center justify-center gap-2 rounded-md bg-[#ef5b5e] px-[18px] text-[13px] font-bold text-white shadow-sm transition hover:bg-[#dc4c50] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isExporting ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Download size={16} strokeWidth={2} />
+          )}
+          <span>Export CSV</span>
+        </button>
       </section>
 
       <section className="mt-[26px] rounded-[10px] border border-[#d9e0e8] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
@@ -305,7 +350,12 @@ export default function AdminUsersPage() {
 
         <div className="flex items-center justify-between px-[22px] py-[18px]">
           <p className="text-[13px] text-[#4e5b6c]">
-            Showing {visibleUsers.length === 0 ? 0 : (currentPage - 1) * USERS_PER_PAGE + 1} to {Math.min(currentPage * USERS_PER_PAGE, visibleUsers.length)} of {visibleUsers.length} users
+            Showing{" "}
+            {visibleUsers.length === 0
+              ? 0
+              : (currentPage - 1) * USERS_PER_PAGE + 1}{" "}
+            to {Math.min(currentPage * USERS_PER_PAGE, visibleUsers.length)} of{" "}
+            {visibleUsers.length} users
           </p>
 
           {totalPages > 1 && (
@@ -317,22 +367,26 @@ export default function AdminUsersPage() {
               >
                 Previous
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`h-[34px] min-w-[34px] rounded-md px-[10px] text-[12px] font-semibold transition cursor-pointer active:scale-98 ${
-                    currentPage === page
-                      ? "bg-[#ef5b5e] text-white"
-                      : "bg-white border border-[#d9e0e8] text-[#273244] hover:bg-gray-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-[34px] min-w-[34px] rounded-md px-[10px] text-[12px] font-semibold transition cursor-pointer active:scale-98 ${
+                      currentPage === page
+                        ? "bg-[#ef5b5e] text-white"
+                        : "bg-white border border-[#d9e0e8] text-[#273244] hover:bg-gray-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ),
+              )}
               <button
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
                 className="h-[34px] rounded-md border border-[#d9e0e8] bg-white px-[14px] text-[12px] font-semibold text-[#273244] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
               >
                 Next

@@ -221,8 +221,21 @@ export interface AdvancedAnalytics {
   hourly_query_distribution: Array<{ time: string; queries: number }>;
 }
 
+export interface AiCommonQuestion {
+  question: string;
+  count: number;
+  last_asked: string;
+}
+
+export interface AiCommonQuestionsResponse {
+  success: boolean;
+  message: string;
+  data: AiCommonQuestion[];
+}
+
 /** Cloudflare tunnel origin — single source of truth */
-export const CF_BASE_URL = "https://revri.duckdns.org";
+export const CF_BASE_URL =
+  "https://east-collected-copying-opposition.trycloudflare.com";
 
 /**
  * Replace any localhost / 127.0.0.1 origin that the backend embeds in media
@@ -655,6 +668,19 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getAiCommonQuestions: builder.query<AiCommonQuestionsResponse, void>({
+      query: () => ({
+        url: "/api/ai-common-questions/",
+        method: "GET",
+      }),
+    }),
+    exportUsersCsv: builder.mutation<Blob, void>({
+      query: () => ({
+        url: "/api/export-users-csv/",
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
     cancelSubscription: builder.mutation<
       { success: boolean; message: string },
       void
@@ -730,6 +756,8 @@ export const {
   useUpdatePlanMutation,
   useCancelSubscriptionMutation,
   useGetAdvancedAnalyticsQuery,
+  useGetAiCommonQuestionsQuery,
+  useExportUsersCsvMutation,
   useGetOverviewInfoQuery,
   useGetUserCurrentPlanQuery,
 } = authApi;
