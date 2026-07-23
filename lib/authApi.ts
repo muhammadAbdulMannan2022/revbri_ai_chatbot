@@ -286,6 +286,7 @@ export const authApi = createApi({
     "UserNotification",
     "Plan",
     "Chats",
+    "User",
   ],
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -434,6 +435,7 @@ export const authApi = createApi({
         url: "/api/admin-user-list/",
         method: "GET",
       }),
+      providesTags: ["User"],
     }),
     // get all chats
     getChats: builder.query<any, void>({
@@ -681,6 +683,24 @@ export const authApi = createApi({
         responseHandler: (response) => response.blob(),
       }),
     }),
+    updateAdminUserDetail: builder.mutation<
+      any,
+      { id: number; body: Record<string, any> }
+    >({
+      query: ({ id, body }) => ({
+        url: `/api/admin-user-detail/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    deleteAdminUserDetail: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/api/admin-user-detail/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
     cancelSubscription: builder.mutation<
       { success: boolean; message: string },
       void
@@ -758,6 +778,8 @@ export const {
   useGetAdvancedAnalyticsQuery,
   useGetAiCommonQuestionsQuery,
   useExportUsersCsvMutation,
+  useUpdateAdminUserDetailMutation,
+  useDeleteAdminUserDetailMutation,
   useGetOverviewInfoQuery,
   useGetUserCurrentPlanQuery,
 } = authApi;

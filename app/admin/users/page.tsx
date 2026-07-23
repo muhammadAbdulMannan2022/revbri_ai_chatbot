@@ -1,12 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Download, Loader2, Search } from "lucide-react";
+import {
+  AlertTriangle,
+  Download,
+  Loader2,
+  Pencil,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import { useExportUsersCsvMutation, useGetUsersQuery } from "@/lib/authApi";
-
-// Assuming this is the hook from your RTK Query / data fetching library
-// Adjust the import path as needed for your project
+import {
+  useDeleteAdminUserDetailMutation,
+  useExportUsersCsvMutation,
+  useGetPlansQuery,
+  useGetUsersQuery,
+  useUpdateAdminUserDetailMutation,
+} from "@/lib/authApi";
 
 type FilterTab = "all" | "free" | "paid" | "high";
 
@@ -19,10 +30,13 @@ const filterTabs: { label: string; key: FilterTab }[] = [
 
 const packageStyles: Record<string, string> = {
   Free: "bg-[#eef2f7] text-[#283445]",
-  Core: "bg-[#dbeafe] text-[#2563eb]",
-  Builder: "bg-[#eadcff] text-[#7c3aed]",
-  Anchor: "bg-[#fff1f1] text-[#ef5b5e]",
   Standard: "bg-[#eef2f7] text-[#283445]",
+};
+
+const getPackageStyle = (pkg: string) => {
+  if (packageStyles[pkg]) return packageStyles[pkg];
+  if (pkg.toLowerCase() === "free") return "bg-[#eef2f7] text-[#283445]";
+  return "bg-[#eef4ff] text-[#2563eb]";
 };
 
 const usageStyles: Record<string, string> = {
@@ -55,10 +69,96 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 1. Fetching data from your custom hook
+  // Fetching live users and real plans from API
   const { data: apiUsers, isLoading, isError } = useGetUsersQuery();
+  const { data: apiPlans } = useGetPlansQuery();
+
   const [exportUsersCsv, { isLoading: isExporting }] =
     useExportUsersCsvMutation();
+  const [updateUser, { isLoading: isUpdating }] =
+    useUpdateAdminUserDetailMutation();
+  const [deleteUser, { isLoading: isDeleting }] =
+    useDeleteAdminUserDetailMutation();
+
+  // Edit & Delete state
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({
+    full_name: "",
+    email: "",
+    package: "Free",
+    status: "active",
+  });
+  const [deletingUser, setDeletingUser] = useState<any | null>(null);
+
+  // Extract real plan list from /api/plan-list/
+  const planList = useMemo(() => {
+    if (!apiPlans) return [];
+    const list = Array.isArray(apiPlans)
+      ? apiPlans
+      : Array.isArray((apiPlans as any).results)
+        ? (apiPlans as any).results
+        : Array.isArray((apiPlans as any).data)
+          ? (apiPlans as any).data
+          : [];
+    return list;
+  }, [apiPlans]);
+
+  // Normalizing API user data
+  const users = useMemo(() => {
+    if (!apiUsers) return [];
+
+    const userList = Array.isArray(apiUsers)
+      ? apiUsers
+      : apiUsers && Array.isArray(apiUsers.results)
+        ? apiUsers.results
+        : apiUsers && Array.isArray(apiUsers.data)
+          ? apiUsers.data
+          : [];
+
+    return userList.map((user: any) => {
+      let rawPkg = user.package || user.pricing_plan?.plan_name || "Free";
+      const pkg =
+        typeof rawPkg === "string" && rawPkg.length > 0
+          ? rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1)
+          : "Free";
+
+      const isPaid = pkg.toLowerCase() !== "free";
+      const usage = user.usage_level || (isPaid ? "Medium" : "Low");
+      const status =
+        user.status && user.status.toLowerCase() === "active"
+          ? "Active"
+          : "Inactive";
+
+      const name =
+        user.full_name || user.email?.split("@")[0] || "Unknown User";
+
+      return {
+        id: user.id,
+        initials: getInitials(name),
+        name: user.full_name || "Unknown User",
+        email: user.email,
+        package: pkg,
+        joinDate: user.join_date || "N/A",
+        queries: String(user.ai_queries ?? 0),
+        usage: usage,
+        lastActive: user.last_active || "N/A",
+        status: status,
+      };
+    });
+  }, [apiUsers]);
+
+  // Combine real API plans with user packages for dynamic dropdown options
+  const availablePlanNames = useMemo(() => {
+    const namesFromPlans = planList
+      .map((p: any) => p.plan_name || p.name || p.title)
+      .filter(Boolean);
+    const namesFromUsers = users
+      .map((u: any) => u.package)
+      .filter(Boolean);
+
+    const set = new Set(["Free", ...namesFromPlans, ...namesFromUsers]);
+    return Array.from(set);
+  }, [planList, users]);
 
   const handleExportCsv = async () => {
     try {
@@ -81,56 +181,70 @@ export default function AdminUsersPage() {
     }
   };
 
-  // 2. Normalizing API data with the exact keys returned by /api/admin-user-list/
-  const users = useMemo(() => {
-    if (!apiUsers) return [];
-
-    const userList = Array.isArray(apiUsers)
-      ? apiUsers
-      : apiUsers && Array.isArray(apiUsers.results)
-        ? apiUsers.results
-        : apiUsers && Array.isArray(apiUsers.data)
-          ? apiUsers.data
-          : [];
-
-    return userList.map((user: any) => {
-      // Normalize package name to capitalization (Free, Core, Builder, Anchor)
-      let rawPkg = user.package || "Free";
-      const pkg =
-        rawPkg.charAt(0).toUpperCase() + rawPkg.slice(1).toLowerCase();
-
-      const isPaid = pkg !== "Free";
-      const usage = user.usage_level || (isPaid ? "Medium" : "Low");
-      const status =
-        user.status && user.status.toLowerCase() === "active"
-          ? "Active"
-          : "Inactive";
-
-      // Safely get initials from full_name or email
-      const name =
-        user.full_name || user.email?.split("@")[0] || "Unknown User";
-
-      return {
-        id: user.id,
-        initials: getInitials(name),
-        name: user.full_name || "Unknown User",
-        email: user.email,
-        package: pkg,
-        joinDate: user.join_date || "N/A",
-        queries: String(user.ai_queries ?? 0),
-        usage: usage,
-        lastActive: user.last_active || "N/A",
-        status: status,
-      };
+  const handleOpenEdit = (user: any) => {
+    setEditingUser(user);
+    setEditForm({
+      full_name: user.name !== "Unknown User" ? user.name : "",
+      email: user.email || "",
+      package: user.package || "Free",
+      status: user.status.toLowerCase() === "active" ? "active" : "inactive",
     });
-  }, [apiUsers]);
+  };
 
-  // 3. Dynamic counts calculated from live API data
+  const handleSaveUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      await updateUser({
+        id: editingUser.id,
+        body: {
+          full_name: editForm.full_name,
+          package: editForm.package,
+          status: editForm.status,
+          is_active: editForm.status === "active",
+        },
+      }).unwrap();
+
+      toast.success("User updated successfully!");
+      setEditingUser(null);
+    } catch (err: any) {
+      console.error("Update user error:", err);
+      toast.error(
+        err?.data?.message ||
+          err?.data?.detail ||
+          err?.message ||
+          "Failed to update user",
+      );
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    try {
+      await deleteUser(deletingUser.id).unwrap();
+      toast.success("User deleted successfully!");
+      setDeletingUser(null);
+    } catch (err: any) {
+      console.error("Delete user error:", err);
+      toast.error(
+        err?.data?.message ||
+          err?.data?.detail ||
+          err?.message ||
+          "Failed to delete user",
+      );
+    }
+  };
+
+  // Dynamic counts calculated from live API data
   const tabCounts = useMemo(
     () => ({
       all: users.length,
-      free: users.filter((user: any) => user.package === "Free").length,
-      paid: users.filter((user: any) => user.package !== "Free").length,
+      free: users.filter((user: any) => user.package.toLowerCase() === "free")
+        .length,
+      paid: users.filter((user: any) => user.package.toLowerCase() !== "free")
+        .length,
       high: users.filter(
         (user: any) => user.usage === "High" || user.usage === "Very High",
       ).length,
@@ -138,15 +252,16 @@ export default function AdminUsersPage() {
     [users],
   );
 
-  // 4. Filtering and searching logic logic
+  // Filtering and searching logic
   const visibleUsers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return users.filter((user: any) => {
+      const isFree = user.package.toLowerCase() === "free";
       const matchesTab =
         activeTab === "all" ||
-        (activeTab === "free" && user.package === "Free") ||
-        (activeTab === "paid" && user.package !== "Free") ||
+        (activeTab === "free" && isFree) ||
+        (activeTab === "paid" && !isFree) ||
         (activeTab === "high" &&
           (user.usage === "High" || user.usage === "Very High"));
 
@@ -189,7 +304,7 @@ export default function AdminUsersPage() {
           type="button"
           onClick={handleExportCsv}
           disabled={isExporting}
-          className="flex h-[39px] hover:cursor-pointer items-center justify-center gap-2 rounded-md bg-[#ef5b5e] px-[18px] text-[13px] font-bold text-white shadow-sm transition hover:bg-[#dc4c50] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-[39px] items-center justify-center gap-2 rounded-md bg-[#ef5b5e] px-[18px] text-[13px] font-bold text-white shadow-sm hover:cursor-pointer transition hover:bg-[#dc4c50] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isExporting ? (
             <Loader2 size={16} className="animate-spin" />
@@ -229,7 +344,7 @@ export default function AdminUsersPage() {
                 role="tab"
                 aria-selected={activeTab === tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`h-[36px] rounded-md px-[17px] text-[13px] font-bold transition ${
+                className={`h-[36px] rounded-md px-[17px] text-[13px] font-bold transition hover:cursor-pointer ${
                   activeTab === tab.key
                     ? "bg-[#ef5b5e] text-white"
                     : "bg-[#f3f5f8] text-[#2f3b4b] hover:bg-[#e9edf2]"
@@ -251,8 +366,9 @@ export default function AdminUsersPage() {
                 <th className="px-[16px] py-[15px] font-bold">AI Queries</th>
                 <th className="px-[16px] py-[15px] font-bold">Usage Level</th>
                 <th className="px-[16px] py-[15px] font-bold">Last Active</th>
+                <th className="px-[16px] py-[15px] font-bold">Status</th>
                 <th className="px-[22px] py-[15px] text-right font-bold">
-                  Status
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -262,7 +378,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <td
                     className="px-[22px] py-[34px] text-center text-[13px] font-semibold text-[#6d7480]"
-                    colSpan={7}
+                    colSpan={8}
                   >
                     Loading users...
                   </td>
@@ -274,7 +390,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <td
                     className="px-[22px] py-[34px] text-center text-[13px] font-semibold text-red-500"
-                    colSpan={7}
+                    colSpan={8}
                   >
                     Failed to load user records.
                   </td>
@@ -287,7 +403,7 @@ export default function AdminUsersPage() {
                 paginatedUsers.map((user: any) => (
                   <tr
                     key={user.id || user.email}
-                    className="border-b border-[#edf0f4] text-[13px] text-[#273244] last:border-b-0"
+                    className="border-b border-[#edf0f4] text-[13px] text-[#273244] transition hover:bg-slate-50/50 last:border-b-0"
                   >
                     <td className="px-[22px] py-[14px]">
                       <div className="flex items-center gap-[13px]">
@@ -306,7 +422,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-[16px] py-[14px]">
                       <span
-                        className={`inline-flex h-[22px] items-center rounded-full px-[10px] text-[10px] font-bold ${packageStyles[user.package] || packageStyles.Standard}`}
+                        className={`inline-flex h-[22px] items-center rounded-full px-[10px] text-[10px] font-bold ${getPackageStyle(user.package)}`}
                       >
                         {user.package}
                       </span>
@@ -323,12 +439,32 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="px-[16px] py-[14px]">{user.lastActive}</td>
-                    <td className="px-[22px] py-[14px] text-right">
+                    <td className="px-[16px] py-[14px]">
                       <span
                         className={`inline-flex h-[22px] items-center rounded-full px-[11px] text-[10px] font-bold ${statusStyles[user.status]}`}
                       >
                         {user.status}
                       </span>
+                    </td>
+                    <td className="px-[22px] py-[14px] text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(user)}
+                          className="flex h-7 w-7 items-center justify-center rounded-md border border-[#d9e0e8] text-[#4e5b6c] hover:cursor-pointer transition hover:border-[#ef5b5e] hover:bg-[#fff1f1] hover:text-[#ef5b5e]"
+                          title="Edit User"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingUser(user)}
+                          className="flex h-7 w-7 items-center justify-center rounded-md border border-[#d9e0e8] text-[#4e5b6c] hover:cursor-pointer transition hover:border-red-500 hover:bg-red-50 hover:text-red-600"
+                          title="Delete User"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -338,7 +474,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <td
                     className="px-[22px] py-[34px] text-center text-[13px] font-semibold text-[#6d7480]"
-                    colSpan={7}
+                    colSpan={8}
                   >
                     No users match the selected filters.
                   </td>
@@ -395,6 +531,150 @@ export default function AdminUsersPage() {
           )}
         </div>
       </section>
+
+      {/* EDIT USER MODAL */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl transition-all">
+            <div className="flex items-center justify-between border-b border-[#edf0f4] pb-4">
+              <h2 className="text-base font-extrabold text-[#151b26]">
+                Edit User Details
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="rounded-lg p-1 text-[#6d7480] hover:bg-slate-100 hover:text-[#151b26] hover:cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUser} className="mt-4 space-y-4 text-left">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6d7480]">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.full_name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, full_name: e.target.value })
+                  }
+                  className="mt-1.5 h-[39px] w-full rounded-md border border-[#d9e0e8] bg-white px-3 text-[13px] text-[#1f2937] outline-none transition focus:border-[#ef5b5e] focus:ring-2 focus:ring-[#fee2e2]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6d7480]">
+                  Email Address (Read-only)
+                </label>
+                <input
+                  type="email"
+                  readOnly
+                  disabled
+                  value={editForm.email}
+                  className="mt-1.5 h-[39px] w-full cursor-not-allowed rounded-md border border-[#d9e0e8] bg-slate-100 px-3 text-[13px] text-[#6d7480] outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6d7480]">
+                    Package / Plan
+                  </label>
+                  <select
+                    value={editForm.package}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, package: e.target.value })
+                    }
+                    className="mt-1.5 h-[39px] w-full rounded-md border border-[#d9e0e8] bg-white px-3 text-[13px] text-[#1f2937] outline-none transition focus:border-[#ef5b5e] focus:ring-2 focus:ring-[#fee2e2]"
+                  >
+                    {availablePlanNames.map((planName) => (
+                      <option key={planName} value={planName}>
+                        {planName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6d7480]">
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, status: e.target.value })
+                    }
+                    className="mt-1.5 h-[39px] w-full rounded-md border border-[#d9e0e8] bg-white px-3 text-[13px] text-[#1f2937] outline-none transition focus:border-[#ef5b5e] focus:ring-2 focus:ring-[#fee2e2]"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="h-[36px] rounded-md border border-[#d9e0e8] bg-white px-4 text-[12px] font-semibold text-[#273244] hover:bg-slate-50 hover:cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="flex h-[36px] items-center gap-2 rounded-md bg-[#ef5b5e] px-4 text-[12px] font-bold text-white transition hover:bg-[#dc4c50] hover:cursor-pointer disabled:opacity-60"
+                >
+                  {isUpdating && <Loader2 size={14} className="animate-spin" />}
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE USER CONFIRMATION MODAL */}
+      {deletingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-2xl transition-all">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+              <AlertTriangle size={24} />
+            </div>
+
+            <h3 className="mt-4 text-base font-extrabold text-[#151b26]">
+              Delete User Account?
+            </h3>
+            <p className="mt-2 text-[12px] text-[#6d7480]">
+              Are you sure you want to delete{" "}
+              <strong className="text-[#151b26]">{deletingUser.name}</strong> (
+              {deletingUser.email})? This action cannot be undone.
+            </p>
+
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingUser(null)}
+                className="h-[36px] w-full rounded-md border border-[#d9e0e8] bg-white text-[12px] font-semibold text-[#273244] hover:bg-slate-50 hover:cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteUser}
+                disabled={isDeleting}
+                className="flex h-[36px] w-full items-center justify-center gap-2 rounded-md bg-rose-600 text-[12px] font-bold text-white transition hover:bg-rose-700 hover:cursor-pointer disabled:opacity-60"
+              >
+                {isDeleting && <Loader2 size={14} className="animate-spin" />}
+                Delete User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
