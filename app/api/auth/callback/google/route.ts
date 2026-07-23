@@ -4,20 +4,14 @@ import { NextRequest, NextResponse } from "next/server";
  * GET /api/auth/callback/google
  *
  * Google redirects here with ?code=...&state=...
- *
- * Current behaviour (placeholder):
- *   - Exchanges the code for Google tokens
- *   - Fetches the user's Google profile
- *   - Redirects to /auth/google-pending with profile data as query params
- *     so the frontend can pass them to your Django backend when ready.
- *
- * TODO (backend): replace the redirect with a call to your Django endpoint
- * that accepts the google id_token or access_token and returns JWT pairs.
+ * 1. Exchanges authorization code for Google tokens (id_token, access_token).
+ * 2. Fetches user's Google profile (email, name, picture, sub).
+ * 3. Redirects to /auth/google-pending so the client browser executes the POST to /api/google-login/.
  */
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url);
   const code = searchParams.get("code");
-  const state = searchParams.get("state") ?? "login"; // "login" | "register"
+  const state = searchParams.get("state") ?? "login";
   const error = searchParams.get("error");
 
   if (error || !code) {
@@ -27,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // ── 1. Exchange code for tokens ──────────────────────────────────────
+    // 1. Exchange code for Google tokens
     const redirectUri = `${origin}/api/auth/callback/google`;
 
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
@@ -52,7 +46,7 @@ export async function GET(req: NextRequest) {
     const tokens: { access_token: string; id_token: string } =
       await tokenRes.json();
 
-    // ── 2. Fetch Google user profile ─────────────────────────────────────
+    // 2. Fetch Google user profile
     const profileRes = await fetch(
       "https://www.googleapis.com/oauth2/v3/userinfo",
       { headers: { Authorization: `Bearer ${tokens.access_token}` } },
@@ -69,61 +63,7 @@ export async function GET(req: NextRequest) {
       sub: string;
     } = await profileRes.json();
 
-    // ── 3. Call your Django backend ──────────────────────────────────────
-    const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "https://revri.duckdns.org";
-    let backendSuccess = false;
-    let backendTokens: {
-      access?: string;
-      refresh?: string;
-      role?: string;
-      userole?: string;
-      user_id?: number;
-    } = {};
-    let backendErrorMessage = "";
-
-    try {
-      const backendRes = await fetch(`${backendUrl}/api/google-login/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify({
-          id_token: tokens.id_token,
-          access_token: tokens.access_token,
-        }),
-      });
-
-      const resData = await backendRes.json();
-
-      if (backendRes.ok && resData.success !== false) {
-        if (resData.success && resData.data) {
-          backendSuccess = true;
-          backendTokens = resData.data;
-        } else if (resData.access || resData.refresh || resData.tokens?.access) {
-          backendSuccess = true;
-          backendTokens = resData.tokens || resData;
-        } else {
-          backendErrorMessage =
-            resData.message || resData.detail || "Google login failed";
-        }
-      } else {
-        backendErrorMessage =
-          resData?.message ||
-          resData?.detail ||
-          resData?.error ||
-          `Google authentication failed (Status ${backendRes.status})`;
-      }
-    } catch (err: any) {
-      console.warn(
-        "Django backend google-login connection failed.",
-        err,
-      );
-      backendErrorMessage = err?.message || "";
-    }
-
-    // ── 4. Redirect with results or fallback to pending ───────────────────
+    // 3. Redirect to /auth/google-pending for client-side /api/google-login/ call
     const pendingUrl = new URL(`${origin}/auth/google-pending`);
     pendingUrl.searchParams.set("email", profile.email || "");
     pendingUrl.searchParams.set("name", profile.name || "");
@@ -131,26 +71,14 @@ export async function GET(req: NextRequest) {
     pendingUrl.searchParams.set("sub", profile.sub || "");
     pendingUrl.searchParams.set("intent", state);
     pendingUrl.searchParams.set("id_token", tokens.id_token || "");
-
-    if (backendSuccess && backendTokens.access) {
-      pendingUrl.searchParams.set("status", "success");
-      pendingUrl.searchParams.set("access_token", backendTokens.access);
-      pendingUrl.searchParams.set("refresh_token", backendTokens.refresh || "");
-      pendingUrl.searchParams.set("role", backendTokens.role || backendTokens.userole || "normal");
-      pendingUrl.searchParams.set("user_id", String(backendTokens.user_id || ""));
-    } else if (backendErrorMessage) {
-      pendingUrl.searchParams.set("status", "error");
-      pendingUrl.searchParams.set("error_message", backendErrorMessage);
-    } else {
-      pendingUrl.searchParams.set("status", "pending");
-      pendingUrl.searchParams.set("access_token", tokens.access_token);
-    }
+    pendingUrl.searchParams.set("access_token", tokens.access_token || "");
+    pendingUrl.searchParams.set("status", "pending");
 
     return NextResponse.redirect(pendingUrl.toString());
-  } catch (err) {
+  } catch (err: any) {
     console.error("[google-oauth-callback]", err);
     return NextResponse.redirect(
-      `${origin}/auth/login?oauth_error=callback_failed`,
+      `${origin}/auth/login?oauth_error=${encodeURIComponent(err?.message || "callback_failed")}`,
     );
   }
 }
