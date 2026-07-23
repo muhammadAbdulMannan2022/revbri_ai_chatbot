@@ -222,8 +222,7 @@ export interface AdvancedAnalytics {
 }
 
 /** Cloudflare tunnel origin — single source of truth */
-export const CF_BASE_URL =
-  "https://supply-firewire-masters-priorities.trycloudflare.com";
+export const CF_BASE_URL = "https://revri.duckdns.org";
 
 /**
  * Replace any localhost / 127.0.0.1 origin that the backend embeds in media

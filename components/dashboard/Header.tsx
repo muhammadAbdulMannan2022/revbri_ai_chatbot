@@ -85,7 +85,10 @@ export const Header: React.FC<HeaderProps> = ({
           ref={dropdownRef}
         >
           {/* Desktop Upgrade */}
-          <button className="hidden sm:flex items-center gap-2 bg-[#FD6E6E] px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg active:scale-95 text-white hover:cursor-pointer">
+          <button
+            onClick={() => navigate.push("/dashboard/plan")}
+            className="hidden sm:flex items-center gap-2 bg-[#FD6E6E] px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg active:scale-95 text-white hover:cursor-pointer"
+          >
             <IoDiamondOutline color="#FFD389" size={18} />
             Upgrade Plan
           </button>
