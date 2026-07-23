@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import BackButton from "@/lib/BackButton";
 import { useLoginMutation } from "@/lib/authApi";
 import { useAppDispatch } from "@/lib/hooks";
@@ -11,12 +11,21 @@ import { setEmail } from "@/lib/authSlice";
 import { getErrorMessage } from "@/lib/errorUtils";
 import { buildGoogleOAuthUrl } from "@/lib/googleOAuth";
 
-export default function SigninForm() {
+function SigninFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const errorParam =
+      searchParams.get("oauth_error") || searchParams.get("oauth_message");
+    if (errorParam) {
+      setFormError(decodeURIComponent(errorParam));
+    }
+  }, [searchParams]);
 
   interface SigninData {
     email: string;
@@ -61,14 +70,14 @@ export default function SigninForm() {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-white px-4 py-8 relative">
-      <div className="absolute top-4 left-4">
+    <div className="relative flex h-full w-full items-center justify-center bg-white px-4 py-8">
+      <div className="absolute left-4 top-4">
         <BackButton />
       </div>
-      <div className="w-full max-w-md flex flex-col items-center">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Welcome</h1>
-          <p className="text-gray-500 text-sm mx-auto">
+      <div className="flex w-full max-w-md flex-col items-center">
+        <div className="mb-8 text-center">
+          <h1 className="mb-3 text-4xl font-bold text-gray-900">Welcome</h1>
+          <p className="mx-auto text-sm text-gray-500">
             TOTC has got more than 100k positive ratings
           </p>
         </div>
@@ -81,19 +90,19 @@ export default function SigninForm() {
 
         <form onSubmit={handleSubmit} className="w-full space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Email
             </label>
             <input
               name="email"
               type="email"
               placeholder="user@mail.com"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-400"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Password
             </label>
             <div className="relative">
@@ -104,7 +113,7 @@ export default function SigninForm() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className="w-full pl-11 pr-11 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="w-full rounded-xl border border-gray-200 py-3 pl-11 pr-11 focus:outline-none focus:ring-2 focus:ring-red-400"
                 required
               />
               <button
@@ -115,7 +124,7 @@ export default function SigninForm() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <p className="text-sm text-right text-[#FF6F6F] mt-1 hover:text-[#ff5959] transition block">
+            <p className="mt-1 block text-right text-sm text-[#FF6F6F] transition hover:text-[#ff5959]">
               <Link href="/auth/forgotpassword" className="mt-2 inline">
                 forgot password?
               </Link>
@@ -125,13 +134,13 @@ export default function SigninForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full hover:cursor-pointer disabled:opacity-60 bg-[#FF6F6F] hover:bg-[#ff5959] text-white font-semibold py-3.5 rounded-xl transition"
+            className="w-full rounded-xl bg-[#FF6F6F] py-3.5 font-semibold text-white transition hover:cursor-pointer hover:bg-[#ff5959] disabled:opacity-60"
           >
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        <div className="w-full flex items-center justify-center my-6 text-xs text-gray-400 font-medium tracking-wide">
+        <div className="my-6 flex w-full items-center justify-center text-xs font-medium tracking-wide text-gray-400">
           <span className="px-2">
             ................Or Sign in with................
           </span>
@@ -139,10 +148,10 @@ export default function SigninForm() {
 
         <button
           type="button"
-          onClick={() => window.location.href = buildGoogleOAuthUrl("login")}
-          className="w-full border hover:cursor-pointer border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl flex items-center justify-center gap-2.5 transition active:scale-[0.99] shadow-sm"
+          onClick={() => (window.location.href = buildGoogleOAuthUrl("login"))}
+          className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-gray-200 py-3 font-medium text-gray-700 shadow-sm transition hover:cursor-pointer hover:bg-gray-50 active:scale-[0.99]"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -163,16 +172,30 @@ export default function SigninForm() {
           <span className="text-sm font-semibold text-gray-600">Google</span>
         </button>
 
-        <p className="mt-6 text-sm text-gray-600 font-medium">
+        <p className="mt-6 text-sm font-medium text-gray-600">
           Don&apos;t have an account?{" "}
           <Link
             href="/auth"
-            className="ml-1 px-3 py-1 border border-red-200 rounded text-[#FF6F6F] text-xs font-semibold hover:bg-red-50 transition"
+            className="ml-1 rounded border border-red-200 px-3 py-1 text-xs font-semibold text-[#FF6F6F] transition hover:bg-red-50"
           >
             Sign up
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SigninForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full w-full items-center justify-center bg-white py-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#FF6F6F] border-t-transparent" />
+        </div>
+      }
+    >
+      <SigninFormContent />
+    </Suspense>
   );
 }

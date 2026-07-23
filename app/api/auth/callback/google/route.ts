@@ -35,8 +35,11 @@ export async function GET(req: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code,
-        client_id: process.env.OAUTH_CLIENT_ID!,
-        client_secret: process.env.OAUTH_CLIENT_SECRET!,
+        client_id:
+          process.env.OAUTH_CLIENT_ID ||
+          process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID ||
+          "",
+        client_secret: process.env.OAUTH_CLIENT_SECRET || "",
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
@@ -67,26 +70,57 @@ export async function GET(req: NextRequest) {
     } = await profileRes.json();
 
     // ── 3. Call your Django backend ──────────────────────────────────────
-    const backendUrl = "https://por-thesis-van-principle.trycloudflare.com";
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL || "https://revri.duckdns.org";
     let backendSuccess = false;
-    let backendTokens: { access?: string; refresh?: string; role?: string; userole?: string; user_id?: number } = {};
+    let backendTokens: {
+      access?: string;
+      refresh?: string;
+      role?: string;
+      userole?: string;
+      user_id?: number;
+    } = {};
+    let backendErrorMessage = "";
 
     try {
       const backendRes = await fetch(`${backendUrl}/api/google-login/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_token: tokens.id_token }),
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({
+          id_token: tokens.id_token,
+          access_token: tokens.access_token,
+        }),
       });
 
-      if (backendRes.ok) {
-        const resData = await backendRes.json();
+      const resData = await backendRes.json();
+
+      if (backendRes.ok && resData.success !== false) {
         if (resData.success && resData.data) {
           backendSuccess = true;
           backendTokens = resData.data;
+        } else if (resData.access || resData.refresh || resData.tokens?.access) {
+          backendSuccess = true;
+          backendTokens = resData.tokens || resData;
+        } else {
+          backendErrorMessage =
+            resData.message || resData.detail || "Google login failed";
         }
+      } else {
+        backendErrorMessage =
+          resData?.message ||
+          resData?.detail ||
+          resData?.error ||
+          `Google authentication failed (Status ${backendRes.status})`;
       }
-    } catch (err) {
-      console.warn("Django backend google-login connection failed. Falling back to pending mode.", err);
+    } catch (err: any) {
+      console.warn(
+        "Django backend google-login connection failed.",
+        err,
+      );
+      backendErrorMessage = err?.message || "";
     }
 
     // ── 4. Redirect with results or fallback to pending ───────────────────
@@ -96,6 +130,7 @@ export async function GET(req: NextRequest) {
     pendingUrl.searchParams.set("picture", profile.picture || "");
     pendingUrl.searchParams.set("sub", profile.sub || "");
     pendingUrl.searchParams.set("intent", state);
+    pendingUrl.searchParams.set("id_token", tokens.id_token || "");
 
     if (backendSuccess && backendTokens.access) {
       pendingUrl.searchParams.set("status", "success");
@@ -103,6 +138,9 @@ export async function GET(req: NextRequest) {
       pendingUrl.searchParams.set("refresh_token", backendTokens.refresh || "");
       pendingUrl.searchParams.set("role", backendTokens.role || backendTokens.userole || "normal");
       pendingUrl.searchParams.set("user_id", String(backendTokens.user_id || ""));
+    } else if (backendErrorMessage) {
+      pendingUrl.searchParams.set("status", "error");
+      pendingUrl.searchParams.set("error_message", backendErrorMessage);
     } else {
       pendingUrl.searchParams.set("status", "pending");
       pendingUrl.searchParams.set("access_token", tokens.access_token);

@@ -253,27 +253,72 @@ export function rewriteMediaUrl(url: string | null | undefined): string {
   );
 }
 
+const publicEndpoints = [
+  "register",
+  "login",
+  "googleLogin",
+  "forgotPassword",
+  "verifyOtp",
+  "resendOtp",
+  "resetPassword",
+];
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: CF_BASE_URL,
+  prepareHeaders: (headers, { getState, endpoint }) => {
+    // 1. Bypass the ngrok warning page
+    headers.set("ngrok-skip-browser-warning", "true");
+
+    // 2. Do NOT send authorization token for public/auth endpoints (login, signup, etc.)
+    if (endpoint && publicEndpoints.includes(endpoint)) {
+      return headers;
+    }
+
+    // 3. Attach bearer token for protected endpoints
+    let token = (getState() as RootState).auth.token;
+    if (!token && typeof window !== "undefined") {
+      token = localStorage.getItem("access_token");
+    }
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    return headers;
+  },
+});
+
+const baseQueryWithReauth: typeof rawBaseQuery = async (
+  args,
+  api,
+  extraOptions,
+) => {
+  const result = await rawBaseQuery(args, api, extraOptions);
+
+  // Auto-logout on 401 Unauthorized for authenticated endpoints
+  if (
+    result.error &&
+    result.error.status === 401 &&
+    !publicEndpoints.includes(api.endpoint)
+  ) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("user_id");
+
+      if (!window.location.pathname.startsWith("/auth")) {
+        window.location.href =
+          "/auth/login?oauth_error=Session%20expired.%20Please%20log%20in%20again.";
+      }
+    }
+  }
+
+  return result;
+};
+
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: CF_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      // 1. Bypass the ngrok warning page
-      headers.set("ngrok-skip-browser-warning", "true");
-
-      // 2. Handle your existing authorization logic
-      let token = (getState() as RootState).auth.token;
-      if (!token && typeof window !== "undefined") {
-        token = localStorage.getItem("access_token");
-      }
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-
-      return headers;
-    },
-    // credentials: "include",
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: [
     "Product",
     "Banner",
@@ -323,6 +368,16 @@ export const authApi = createApi({
         url: "/api/login/",
         method: "POST",
         body: role_type ? { ...body, role_type } : body,
+      }),
+    }),
+    googleLogin: builder.mutation<
+      LoginResponse,
+      { id_token?: string; access_token?: string }
+    >({
+      query: (body) => ({
+        url: "/api/google-login/",
+        method: "POST",
+        body,
       }),
     }),
     forgotPassword: builder.mutation<void, { email: string }>({
@@ -728,6 +783,7 @@ export const authApi = createApi({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useGoogleLoginMutation,
   useForgotPasswordMutation,
   useVerifyOtpMutation,
   useResendOtpMutation,
