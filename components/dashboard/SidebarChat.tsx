@@ -17,10 +17,15 @@ export default function SidebarChatList() {
     ? Number(searchParams.get("room"))
     : null;
 
-  const [chats, setChats] = useState<Chat[]>([]);
   const [actionOpenId, setActionOpenId] = useState<number | null>(null);
-  const { data: chatsData, isLoading: isChatsLoading } = useGetChatsQuery();
+  const { data: chatsData, isLoading: isChatsLoading } = useGetChatsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const [deleteChatRoom, { isLoading: isDeleting }] = useDeleteChatRoomMutation();
+
+  const chats: Chat[] = Array.isArray(chatsData)
+    ? chatsData
+    : ((chatsData as any)?.results ?? []);
 
   // Close action dropdown on outside click
   useEffect(() => {
@@ -28,15 +33,6 @@ export default function SidebarChatList() {
     window.addEventListener("click", handleOutsideClick);
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
-
-  useEffect(() => {
-    if (!isChatsLoading && chatsData) {
-      const raw = Array.isArray(chatsData)
-        ? chatsData
-        : ((chatsData as any)?.results ?? []);
-      setChats(raw);
-    }
-  }, [chatsData, isChatsLoading]);
 
   const handleSelectChat = (id: number) => {
     setActionOpenId(null);

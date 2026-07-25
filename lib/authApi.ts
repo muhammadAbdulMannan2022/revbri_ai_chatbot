@@ -525,7 +525,7 @@ export const authApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Messages"],
+      invalidatesTags: ["Messages", "Chats"],
     }),
     // ── Knowledge PDFs ─────────────────────────────────────────────────────────
     getKnowledgePdfs: builder.query<
