@@ -235,7 +235,7 @@ export interface AiCommonQuestionsResponse {
 
 /** Cloudflare tunnel origin — single source of truth */
 export const CF_BASE_URL =
-  "https://detection-minus-stationery-latex.trycloudflare.com";
+  "https://tears-attacks-tag-franklin.trycloudflare.com";
 
 /**
  * Replace any localhost / 127.0.0.1 origin that the backend embeds in media
