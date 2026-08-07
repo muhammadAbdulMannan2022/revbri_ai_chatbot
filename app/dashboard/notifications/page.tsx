@@ -50,7 +50,7 @@ function NotificationsContent() {
     try {
       const proto = window.location.protocol === "https:" ? "wss" : "ws";
       ws = new WebSocket(
-        `${proto}://speeds-cardiff-leads-respond.trycloudflare.com/ws/notifications/?token=${token}`,
+        `${proto}://cap-pix-min-relation.trycloudflare.com/ws/notifications/?token=${token}`,
       );
 
       ws.onmessage = (event) => {

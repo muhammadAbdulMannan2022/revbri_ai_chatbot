@@ -234,8 +234,7 @@ export interface AiCommonQuestionsResponse {
 }
 
 /** Cloudflare tunnel origin — single source of truth */
-export const CF_BASE_URL =
-  "https://speeds-cardiff-leads-respond.trycloudflare.com";
+export const CF_BASE_URL = "https://cap-pix-min-relation.trycloudflare.com";
 
 /**
  * Replace any localhost / 127.0.0.1 origin that the backend embeds in media
