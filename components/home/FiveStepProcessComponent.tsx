@@ -30,12 +30,12 @@ export default function HowItWorksSection() {
   ];
 
   return (
-    <section className="w-full bg-white py-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-red-100 overflow-hidden">
+    <section className="w-full bg-[#09090A] text-white py-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-red-900/40 overflow-hidden border-t border-gray-800/40">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         
         {/* Section Heading */}
         <div className="text-center mb-16 md:mb-24">
-          <span className="text-xs md:text-[16px] font-bold  text-primary uppercase">
+          <span className="text-xs md:text-[16px] font-bold text-[#E86161] uppercase tracking-widest">
             How BCL Works For You™
           </span>
         </div>
@@ -44,7 +44,7 @@ export default function HowItWorksSection() {
         <div className="relative w-full flex flex-col lg:flex-row gap-12 lg:gap-6 items-start justify-between">
           
           {/* Connecting Line - Horizontal on Desktop, Vertical on Mobile */}
-          <div className="absolute top-[22px] left-[23px] bottom-10 w-[2px] bg-[#F1D4D4] lg:top-[22px] lg:left-6 lg:right-6 lg:w-auto lg:h-[2px] lg:bottom-auto z-0" />
+          <div className="absolute top-[22px] left-[23px] bottom-10 w-[2px] bg-gray-800 lg:top-[22px] lg:left-6 lg:right-6 lg:w-auto lg:h-[2px] lg:bottom-auto z-0" />
 
           {/* Process Steps */}
           {steps.map((step, index) => (
@@ -53,16 +53,16 @@ export default function HowItWorksSection() {
               className="relative z-10 flex flex-row lg:flex-col items-start lg:items-center text-left lg:text-center flex-1 group gap-4 lg:gap-0"
             >
               {/* Step Number Circle */}
-              <div className="w-12 h-12 rounded-2xl bg-[#E86161] font-inter font-bold text-white flex items-center justify-center  text-base md:text-lg shadow-lg shadow-[#E56363]/30 flex-shrink-0 lg:mb-6 transition-transform duration-300 group-hover:scale-110">
+              <div className="w-12 h-12 rounded-2xl bg-[#E86161] font-inter font-bold text-white flex items-center justify-center text-base md:text-lg shadow-lg shadow-[#E56363]/30 flex-shrink-0 lg:mb-6 transition-transform duration-300 group-hover:scale-110">
                 {step.number}
               </div>
 
               {/* Text Content */}
               <div className="flex flex-col pt-1 lg:pt-0 lg:px-2">
-                <h3 className="text-[18px] font-bold text-[#101828] mb-2 ">
+                <h3 className="text-[18px] font-bold text-white mb-2">
                   {step.title}
                 </h3>
-                <p className="text-sm text-[#4A5565]  font-normal max-w-sm lg:max-w-none">
+                <p className="text-sm text-gray-400 font-normal max-w-sm lg:max-w-none leading-relaxed">
                   {step.description}
                 </p>
               </div>

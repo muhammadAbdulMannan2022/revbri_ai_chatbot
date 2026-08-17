@@ -1,4 +1,3 @@
-// components/TrustedByLeadersComponent.js
 import React from 'react';
 
 const TrustedByLeadersComponent = () => {
@@ -20,7 +19,7 @@ const TrustedByLeadersComponent = () => {
     },
   ];
 
-  const renderStars = (count:number) => {
+  const renderStars = (count: number) => {
     return (
       <div className="flex items-center mb-3">
         {[...Array(count)].map((_, i) => (
@@ -33,25 +32,29 @@ const TrustedByLeadersComponent = () => {
   };
 
   return (
-    <section className="bg-white py-16 sm:py-20 lg:py-24">
+    <section className="bg-[#09090A] text-white py-16 sm:py-20 lg:py-24 border-t border-gray-800/40 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p className="text-primary text-sm font-semibold  tracking-wider mb-12">TRUSTED BY LEADERS. TRANSFORMING CHURCHES.</p>
+        <p className="text-[#E86161] text-sm font-semibold tracking-widest uppercase mb-12">
+          TRUSTED BY LEADERS. TRANSFORMING CHURCHES.
+        </p>
 
         <div className="flex flex-col lg:flex-row items-center justify-center lg:space-x-12 space-y-12 lg:space-y-0">
           <div className="flex-shrink-0 text-center lg:text-left">
-            <p className="md:text-6xl text-4xl font-bold text-gray-900">500+</p>
-            <p className="text-lg text-gray-600 mt-2">Churches Served</p>
+            <p className="md:text-6xl text-4xl font-bold text-white">500+</p>
+            <p className="text-lg text-gray-400 mt-2">Churches Served</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full lg:w-auto flex-grow">
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-[#F9FAFB] p-6 rounded-lg shadow-sm border border-gray-100 text-left hover:shadow-md transition duration-300"
+                className="bg-[#18181C] p-6 rounded-2xl shadow-xl border border-gray-800/60 text-left hover:border-[#E86161]/50 transition duration-300"
               >
                 {renderStars(testimonial.stars)}
-                <p className="text-[#101828] font-normal text-base mb-4 ">&ldquo;{testimonial.quote}&rdquo;</p>
-                <p className="text-[#6A7282] text-base font-normal">— {testimonial.author}</p>
+                <p className="text-gray-200 font-normal text-base mb-4 italic">
+                  &ldquo;{testimonial.quote}&rdquo;
+                </p>
+                <p className="text-gray-400 text-sm font-medium">— {testimonial.author}</p>
               </div>
             ))}
           </div>

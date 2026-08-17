@@ -50,6 +50,23 @@ export interface ProfileResponse {
   [key: string]: unknown;
 }
 
+export interface FeedbackItem {
+  id?: number;
+  rating: number;
+  message: string;
+  user_name?: string;
+  full_name?: string;
+  user_email?: string;
+  email?: string;
+  created_at?: string;
+  user?: {
+    full_name?: string;
+    email?: string;
+    profile_image?: string;
+  } | string;
+  [key: string]: unknown;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -260,6 +277,7 @@ const publicEndpoints = [
   "verifyOtp",
   "resendOtp",
   "resetPassword",
+  "getFeedbackList",
 ];
 
 const rawBaseQuery = fetchBaseQuery({
@@ -331,6 +349,7 @@ export const authApi = createApi({
     "Plan",
     "Chats",
     "User",
+    "Feedback",
   ],
   endpoints: (builder) => ({
     register: builder.mutation<
@@ -776,6 +795,24 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    submitFeedback: builder.mutation<
+      { success?: boolean; message?: string; data?: any; [key: string]: any },
+      { rating: number; message: string }
+    >({
+      query: (body) => ({
+        url: "/api/feedback/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Feedback"],
+    }),
+    getFeedbackList: builder.query<any, void>({
+      query: () => ({
+        url: "/api/feedback-list/",
+        method: "GET",
+      }),
+      providesTags: ["Feedback"],
+    }),
   }),
 });
 
@@ -837,4 +874,6 @@ export const {
   useDeleteAdminUserDetailMutation,
   useGetOverviewInfoQuery,
   useGetUserCurrentPlanQuery,
+  useSubmitFeedbackMutation,
+  useGetFeedbackListQuery,
 } = authApi;

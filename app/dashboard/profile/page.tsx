@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff, Lock, Upload, X } from "lucide-react";
+import { Eye, EyeOff, Lock, MessageSquare, Star, Upload, X } from "lucide-react";
 import {
   useGetOverviewInfoQuery,
   useGetProfileQuery,
   useResetPasswordMutation,
+  useSubmitFeedbackMutation,
   useUpdateProfileMutation,
 } from "@/lib/authApi";
 import { getErrorMessage } from "@/lib/errorUtils";
@@ -39,6 +40,15 @@ const AccountSettings: React.FC = () => {
   const [passwordMessage, setPasswordMessage] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Feedback form state
+  const [submitFeedback, { isLoading: isSubmittingFeedback }] =
+    useSubmitFeedbackMutation();
+  const [rating, setRating] = useState<number>(5);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [feedbackText, setFeedbackText] = useState<string>("");
+  const [feedbackMessage, setFeedbackMessage] = useState<string>("");
+  const [feedbackError, setFeedbackError] = useState<string>("");
 
   useEffect(() => {
     if (data?.data) {
@@ -126,6 +136,31 @@ const AccountSettings: React.FC = () => {
       }));
     } catch (err: unknown) {
       setPasswordError(getErrorMessage(err));
+    }
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFeedbackError("");
+    setFeedbackMessage("");
+
+    if (!feedbackText.trim()) {
+      setFeedbackError("Please enter your feedback message before submitting.");
+      return;
+    }
+
+    try {
+      const res = await submitFeedback({
+        rating,
+        message: feedbackText.trim(),
+      }).unwrap();
+      setFeedbackMessage(
+        res?.message || "Thank you! Your feedback has been submitted successfully."
+      );
+      setFeedbackText("");
+      setRating(5);
+    } catch (err: unknown) {
+      setFeedbackError(getErrorMessage(err));
     }
   };
 
@@ -386,6 +421,85 @@ const AccountSettings: React.FC = () => {
                 className="rounded-xl bg-white border border-red-400 px-5 py-3 text-red-500 font-semibold shadow-sm transition hover:bg-red-50 disabled:opacity-60"
               >
                 {isResetting ? "Updating password..." : "Reset password"}
+              </button>
+            </form>
+
+            <form
+              onSubmit={handleFeedbackSubmit}
+              className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <MessageSquare className="w-5 h-5 text-[#FF6F6F]" />
+                <h2 className="text-xl font-semibold text-gray-700">
+                  Share Your Feedback
+                </h2>
+              </div>
+              <p className="text-sm text-gray-500 mb-6">
+                Let us know about your experience. Your feedback helps us improve and will be featured on our platform!
+              </p>
+
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rating
+                </label>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="p-1 focus:outline-none transition-transform hover:scale-110"
+                      title={`${star} Star${star > 1 ? "s" : ""}`}
+                    >
+                      <Star
+                        size={24}
+                        className={`${
+                          star <= (hoverRating || rating)
+                            ? "text-amber-400 fill-amber-400"
+                            : "text-gray-300"
+                        } transition-colors`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-3 text-sm font-medium text-gray-600">
+                    {hoverRating || rating} / 5 Stars
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Message
+                </label>
+                <textarea
+                  rows={4}
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="The AI responses are super fast and accurate!"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-red-200 text-sm text-gray-800 placeholder-gray-400"
+                  required
+                />
+              </div>
+
+              {feedbackError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+                  {feedbackError}
+                </div>
+              )}
+              {feedbackMessage && (
+                <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 mb-4">
+                  {feedbackMessage}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmittingFeedback}
+                className="rounded-xl bg-[#FF6F6F] px-5 py-3 text-white font-semibold shadow-sm transition hover:bg-[#ff5959] disabled:opacity-60"
+              >
+                {isSubmittingFeedback ? "Submitting..." : "Submit Feedback"}
               </button>
             </form>
           </div>

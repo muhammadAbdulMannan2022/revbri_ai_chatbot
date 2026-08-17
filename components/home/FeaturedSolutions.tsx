@@ -37,15 +37,15 @@ export default function FeaturedSolutions() {
   ];
 
   return (
-    <section className="w-full bg-[#F8F9FA] py-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-red-100">
+    <section className="w-full bg-[#09090A] text-white py-20 px-4 sm:px-6 lg:px-8 font-sans selection:bg-red-900/40 border-t border-gray-800/40">
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <span className="text-xs md:text-base font-bold  text-primary font-inter uppercase block">
+          <span className="text-xs md:text-base font-bold text-[#E86161] font-inter uppercase block tracking-widest">
             Featured Solutions
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-[48px] font-bold text-[#101828]">
+          <h2 className="text-3xl md:text-4xl lg:text-[48px] font-bold text-white">
             Built for Real Ministry Challenges
           </h2>
         </div>
@@ -55,7 +55,7 @@ export default function FeaturedSolutions() {
           {solutions.map((item, idx) => (
             <div 
               key={idx} 
-              className="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 relative"
+              className="bg-[#18181C] rounded-2xl shadow-xl border border-gray-800/60 flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 relative group hover:border-gray-700"
             >
               {/* Highlight Top Bar Style Accent */}
               <div className={`absolute top-0 left-0 right-0 h-[5px] ${item.accentBg}`} />
@@ -69,7 +69,7 @@ export default function FeaturedSolutions() {
                   </span>
                   
                   {/* Card Main Header Title */}
-                  <h3 className="text-[24px] font-inter font-bold text-[#101828] mb-4 ">
+                  <h3 className="text-[24px] font-inter font-bold text-white mb-4">
                     {item.title}
                   </h3>
                   
@@ -77,7 +77,7 @@ export default function FeaturedSolutions() {
                   <div className={`w-8 h-[2px] mb-6 ${item.accentBg}`} />
 
                   {/* Description text */}
-                  <p className="text-sm text-[#4A5565]  font-normal mb-8">
+                  <p className="text-sm text-gray-400 font-normal mb-8 leading-relaxed">
                     {item.description}
                   </p>
                 </div>
@@ -86,7 +86,7 @@ export default function FeaturedSolutions() {
                 <div className="pt-2">
                   <a 
                     href="#" 
-                    className="inline-flex items-center text-xs font-bold  text-primary hover:text-red-600 transition-colors uppercase group"
+                    className="inline-flex items-center text-xs font-bold text-[#E86161] hover:text-red-400 transition-colors uppercase group"
                   >
                     Explore 
                     <span className="inline-block transform transition-transform duration-200 group-hover:translate-x-1 ml-1 text-sm leading-none">
